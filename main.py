@@ -5,6 +5,9 @@ class MainMenu:
     def __init__(self, screen, width, height):
         font = pygame.font.Font(None, round(height // 5 * 0.6))
 
+        self.width = width
+        self.height = height
+
         txt_settings_btn = font.render('Один игрок', True, (0, 0, 200))
 
         pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 2, width - 200, round(height * 0.75 // 5)), 1)
@@ -19,12 +22,14 @@ class MainMenu:
         screen.blit(txt_settings_btn, ((width - txt_settings_btn.get_width()) // 2, round(height // 5 * 4.2)))
 
     def go_next(self, x, y):
-        if 100 <= x <= 500 and 100 <= y <= 200:
-            """Дальше хз"""
-        elif 100 <= x <= 500 and 250 <= y <= 350:
-            """Дальше хз"""
-        elif 100 <= x <= 500 and 400 <= y <= 500:
-            """Дальше хз"""
+        width = self.width
+        height = self.height
+        if 100 <= x <= width - 200 and height // 5 * 2 <= y <= round(height * 2.75 // 5):
+            print("""Дальше хз""")
+        elif 100 <= x <= width - 200 and height // 5 * 3 <= y <= round(height * 3.75 // 5):
+            print("""Дальше хз""")
+        elif 100 <= x <= width - 200 and height // 5 * 4 <= y <= round(height * 4.75 // 5):
+            print("""Дальше хз""")
 
 
 if __name__ == '__main__':
