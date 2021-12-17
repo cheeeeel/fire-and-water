@@ -8,7 +8,7 @@ class MainMenu:
         self.width = width
         self.height = height
 
-        setting_image = pygame.image.load('settings.png').convert()
+        setting_image = pygame.image.load('data/settings.png').convert()
 #        pygame.draw.rect(screen, (0, 0, 200), (width - 125, 25, 100, 100), 1)
         screen.blit(setting_image, (width - 125, 25))
 
