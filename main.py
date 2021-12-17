@@ -1,5 +1,5 @@
 import pygame
-
+import os
 
 class MainMenu:
     def __init__(self, screen, width, height):
@@ -8,7 +8,7 @@ class MainMenu:
         self.width = width
         self.height = height
 
-        setting_image = pygame.image.load('data/settings.png').convert()
+        setting_image = self.load_image("settings.png")
 #        pygame.draw.rect(screen, (0, 0, 200), (width - 125, 25, 100, 100), 1)
         screen.blit(setting_image, (width - 125, 25))
 
@@ -21,6 +21,21 @@ class MainMenu:
 #        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 3.5, width - 200, round(height * 0.75 // 5)), 1)
         screen.blit(self.txt_duo_btn,
                     ((width - self.txt_duo_btn.get_width()) // 2, round(height // 5 * 3.75)))
+
+    def load_image(self, s, key=None):
+        name = os.path.join("data", s)
+        try:
+            image = pygame.image.load(name).convert()
+        except pygame.error as message:
+            print("error with " + s)
+            raise SystemExit(message)
+        if key is not None:
+            if key == -1:
+                key = image.get_at((0, 0))
+                image.set_colorkey(key)
+        else:
+            image = image.convert_alpha()
+        return image
 
     def go_next(self, x, y):
         width = self.width
