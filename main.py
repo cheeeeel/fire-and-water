@@ -8,12 +8,12 @@ class MainMenu:
         self.width = width
         self.height = height
 
-        txt_settings_btn = font.render('Один игрок', True, (0, 0, 200))
+        txt_settings_btn = font.render('Игра по сети', True, (0, 0, 200))
 
         pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 2, width - 200, round(height * 0.75 // 5)), 1)
         screen.blit(txt_settings_btn, ((width - txt_settings_btn.get_width()) // 2, round(height // 5 * 2.2)))
 
-        txt_duo_btn = font.render('Два игрока', True, (0, 0, 200))
+        txt_duo_btn = font.render('Один компьютер', True, (0, 0, 200))
         pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 3, width - 200, round(height * 0.75 // 5)), 1)
         screen.blit(txt_duo_btn, ((width - txt_duo_btn.get_width()) // 2, round(height // 5 * 3.2)))
 
@@ -25,11 +25,15 @@ class MainMenu:
         width = self.width
         height = self.height
         if 100 <= x <= width - 200 and height // 5 * 2 <= y <= round(height * 2.75 // 5):
-            print("""Дальше хз""")
+            print("""""")
         elif 100 <= x <= width - 200 and height // 5 * 3 <= y <= round(height * 3.75 // 5):
-            print("""Дальше хз""")
+            print("""""")
         elif 100 <= x <= width - 200 and height // 5 * 4 <= y <= round(height * 4.75 // 5):
-            print("""Дальше хз""")
+            print("""""")
+
+
+class Game:
+    pass  # пока файл game.py
 
 
 if __name__ == '__main__':
