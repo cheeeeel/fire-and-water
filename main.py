@@ -8,26 +8,30 @@ class MainMenu:
         self.width = width
         self.height = height
 
-        txt_settings_btn = font.render('Игра по сети', True, (0, 0, 200))
-#        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 2, width - 200, round(height * 0.75 // 5)), 1)
-        screen.blit(txt_settings_btn, ((width - txt_settings_btn.get_width()) // 2, round(height // 5 * 2.2)))
+        setting_image = pygame.image.load('settings.png').convert()
+#        pygame.draw.rect(screen, (0, 0, 200), (width - 125, 25, 100, 100), 1)
+        screen.blit(setting_image, (width - 125, 25))
 
-        txt_duo_btn = font.render('Один компьютер', True, (0, 0, 200))
-#        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 3, width - 200, round(height * 0.75 // 5)), 1)
-        screen.blit(txt_duo_btn, ((width - txt_duo_btn.get_width()) // 2, round(height // 5 * 3.2)))
+        self.txt_settings_btn = font.render('Игра по сети', True, (0, 0, 200))
+#        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 2.5, width - 200, round(height * 0.75 // 5)), 1)
+        screen.blit(self.txt_settings_btn,
+                    ((width - self.txt_settings_btn.get_width()) // 2, round(height // 5 * 2.75)))
 
-        txt_settings_btn = font.render('Настройки', True, (0, 0, 200))
-#        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 4, width - 200, round(height * 0.75 // 5)), 1)
-        screen.blit(txt_settings_btn, ((width - txt_settings_btn.get_width()) // 2, round(height // 5 * 4.2)))
+        self.txt_duo_btn = font.render('Один компьютер', True, (0, 0, 200))
+#        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 3.5, width - 200, round(height * 0.75 // 5)), 1)
+        screen.blit(self.txt_duo_btn,
+                    ((width - self.txt_duo_btn.get_width()) // 2, round(height // 5 * 3.75)))
 
     def go_next(self, x, y):
         width = self.width
         height = self.height
-        if 100 <= x <= width - 200 and height // 5 * 2 <= y <= round(height * 2.75 // 5):
+        m = self.txt_settings_btn.get_width()
+        n = self.txt_duo_btn.get_width()
+        if (width - m) // 2 <= x <= (width + m) // 2 and height // 5 * 2.5 <= y <= round(height * 3.25 // 5):
             print("""""")
-        elif 100 <= x <= width - 200 and height // 5 * 3 <= y <= round(height * 3.75 // 5):
+        elif (width - n) // 2 <= x <= (width + n) // 2 and height // 5 * 3.5 <= y <= round(height * 4.25 // 5):
             print("""""")
-        elif 100 <= x <= width - 200 and height // 5 * 4 <= y <= round(height * 4.75 // 5):
+        elif width - 125 <= x <= width - 25 and 25 <= y <= 125:
             print("""""")
 
 
