@@ -9,16 +9,15 @@ class MainMenu:
         self.height = height
 
         txt_settings_btn = font.render('Игра по сети', True, (0, 0, 200))
-
-        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 2, width - 200, round(height * 0.75 // 5)), 1)
+#        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 2, width - 200, round(height * 0.75 // 5)), 1)
         screen.blit(txt_settings_btn, ((width - txt_settings_btn.get_width()) // 2, round(height // 5 * 2.2)))
 
         txt_duo_btn = font.render('Один компьютер', True, (0, 0, 200))
-        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 3, width - 200, round(height * 0.75 // 5)), 1)
+#        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 3, width - 200, round(height * 0.75 // 5)), 1)
         screen.blit(txt_duo_btn, ((width - txt_duo_btn.get_width()) // 2, round(height // 5 * 3.2)))
 
         txt_settings_btn = font.render('Настройки', True, (0, 0, 200))
-        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 4, width - 200, round(height * 0.75 // 5)), 1)
+#        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 4, width - 200, round(height * 0.75 // 5)), 1)
         screen.blit(txt_settings_btn, ((width - txt_settings_btn.get_width()) // 2, round(height // 5 * 4.2)))
 
     def go_next(self, x, y):
