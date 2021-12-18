@@ -85,13 +85,13 @@ while running:
     if y_water < 600:
         y_water += 150 / fps
     if key_d and x_fire <= 950:
-        x_fire += 250 / fps
+        x_fire += 150 / fps
     if key_right and x_water <= 950:
-        x_water += 250 / fps
+        x_water += 150 / fps
     if key_a and x_fire >= 0:
-        x_fire -= 250 / fps
+        x_fire -= 150 / fps
     if key_left and x_water >= 0:
-        x_water -= 250 / fps
+        x_water -= 150 / fps
     if jump_water and water_flag:
         if y_water > 500:
             y_water -= 300 / fps

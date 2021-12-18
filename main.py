@@ -1,6 +1,7 @@
 import pygame
 import os
 
+
 class MainMenu:
     def __init__(self, screen, width, height):
         font = pygame.font.Font(None, round(height // 5 * 0.6))
@@ -8,7 +9,7 @@ class MainMenu:
         self.width = width
         self.height = height
 
-        setting_image = self.load_image("settings.png")
+        setting_image = self.load_image("settings.png", -1)
 #        pygame.draw.rect(screen, (0, 0, 200), (width - 125, 25, 100, 100), 1)
         screen.blit(setting_image, (width - 125, 25))
 
