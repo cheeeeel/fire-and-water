@@ -18,6 +18,7 @@ def load_image(s, key=None):
     return image
 
 
+
 pygame.init()
 size = 1000, 700
 screen = pygame.display.set_mode(size)
@@ -28,10 +29,11 @@ banner_water = load_image("water-bg.png", -1)
 fire = pygame.transform.scale(banner_fire, (50, 80))
 water = pygame.transform.scale(banner_water, (50, 80))
 clock = pygame.time.Clock()
-MYEVENTTYPE_water_after = pygame.USEREVENT + 1
-MYEVENTTYPE_fire_after = pygame.USEREVENT + 1
-MYEVENTTYPE_water_jump = pygame.USEREVENT + 1
-MYEVENTTYPE_fire_jump = pygame.USEREVENT + 1
+
+water_jumping_start = pygame.USEREVENT + 1
+fire_jumping_start = pygame.USEREVENT + 2
+water_jumping_end = pygame.USEREVENT + 3
+fire_jumping_end = pygame.USEREVENT + 4
 
 fps = 60
 x_fire, y_fire = 10, 500
@@ -42,6 +44,15 @@ jump_fire = False
 jump_water = False
 water_flag = False
 fire_flag = False
+
+# all_sprites = pygame.sprite.Group()
+# fire = pygame.sprite.Sprite()
+# fire.image = load_image("fire-bg.png", -1)
+# fire.rect = fire.rect.size
+# all_sprites.add(fire)
+# fire.rect.x = 10
+# fire.rect.y = 5
+# fire.rect.width = 80
 
 running = True
 while running:
@@ -57,14 +68,12 @@ while running:
                 key_right = True
             if event.key == pygame.K_LEFT:
                 key_left = True
-            if event.key == pygame.K_UP and not jump_water:
+            if event.key == pygame.K_UP and not jump_water and not water_flag:
                 jump_water = True
-                if not water_flag:
-                    water_flag = True
-            if event.key == pygame.K_w and not jump_fire:
+                pygame.time.set_timer(water_jumping_start, 650)
+            if event.key == pygame.K_w and not jump_fire and not fire_flag:
                 jump_fire = True
-                if not fire_flag:
-                    fire_flag = True
+                pygame.time.set_timer(fire_jumping_start, 650)
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 key_a = False
@@ -74,12 +83,24 @@ while running:
                 key_right = False
             if event.key == pygame.K_LEFT:
                 key_left = False
-        if event.type == MYEVENTTYPE_water_after:
+
+        if event.type == water_jumping_start:
+            pygame.time.set_timer(water_jumping_start, 0)
+            pygame.time.set_timer(water_jumping_end, 650)
+            water_flag = True
             jump_water = False
-            pygame.time.set_timer(MYEVENTTYPE_water_after, 0)
-        if event.type == MYEVENTTYPE_fire_after:
+        if event.type == water_jumping_end:
+            pygame.time.set_timer(water_jumping_end, 0)
+            water_flag = False
+        if event.type == fire_jumping_start:
+            pygame.time.set_timer(fire_jumping_start, 0)
+            pygame.time.set_timer(fire_jumping_end, 651)
+            fire_flag = True
             jump_fire = False
-            pygame.time.set_timer(MYEVENTTYPE_fire_after, 0)
+        if event.type == fire_jumping_end:
+            pygame.time.set_timer(fire_jumping_end, 0)
+            fire_flag = False
+
     if y_fire < 600:
         y_fire += 150 / fps
     if y_water < 600:
@@ -92,21 +113,15 @@ while running:
         x_fire -= 150 / fps
     if key_left and x_water >= 0:
         x_water -= 150 / fps
-    if jump_water and water_flag:
-        if y_water > 500:
-            y_water -= 300 / fps
-        else:
-            water_flag = False
-            pygame.time.set_timer(MYEVENTTYPE_water_after, 700)
-    if jump_fire and fire_flag:
-        if y_fire > 500:
-            y_fire -= 300 / fps
-        else:
-            fire_flag = False
-            pygame.time.set_timer(MYEVENTTYPE_fire_after, 700)
+    if jump_water:
+        y_water -= 300 / fps
+    if jump_fire:
+        y_fire -= 300 / fps
 
     clock.tick(fps)
     screen.fill("black")
+    # all_sprites.draw(screen)
+    # all_sprites.update()
     screen.blit(fire, (x_fire, y_fire))
     screen.blit(water, (x_water, y_water))
     pygame.draw.rect(screen, "light yellow", (0, 680, 1000, 700))
