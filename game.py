@@ -48,6 +48,7 @@ jump_water = False
 water_flag = False
 fire_flag = False
 all_sprites = pygame.sprite.Group()
+coef_for_jump = 0
 
 fire = pygame.sprite.Sprite()
 fire.image = load_image("fire-bg.png", -1)
@@ -109,7 +110,7 @@ while running:
             water_flag = False
         if event.type == fire_jumping_start:
             pygame.time.set_timer(fire_jumping_start, 0)
-            pygame.time.set_timer(fire_jumping_end, 651)
+            pygame.time.set_timer(fire_jumping_end, 800)
             fire_flag = True
             jump_fire = False
         if event.type == fire_jumping_end:
@@ -132,9 +133,11 @@ while running:
     # fire
     # fire
     if not pygame.sprite.collide_mask(fire, platform):
+        coef_for_jump += 150 / fps
         fire.rect.y += 150 / fps
     if jump_fire:
-        fire.rect.y -= 300 / fps
+        coef_for_jump += 300 / fps
+        fire.rect.y -= 500 / fps
     fire.rect.y -= 10
     fire.rect.x += 1
     if key_d and fire.rect.x <= 950:
@@ -146,7 +149,33 @@ while running:
     fire.rect.y += 10
     fire.rect.x -= 1
 
-    clock.tick(fps)
+    if jump_fire:
+        if coef_for_jump > 90:
+            if key_d and fire.rect.x <= 950:
+                fire.rect.x += 250 / fps
+            elif key_a and fire.rect.x >= 0:
+                fire.rect.x -= 150 / fps
+            clock.tick(15)
+        elif coef_for_jump > 40:
+            if key_d and fire.rect.x <= 950:
+                fire.rect.x += 100 / fps
+            elif key_a and fire.rect.x >= 0:
+                fire.rect.x -= 100 / fps
+            clock.tick(30)
+        else:
+            clock.tick(fps)
+    elif not pygame.sprite.collide_mask(fire, platform):
+        if 200 > coef_for_jump > 110:
+            clock.tick(40)
+        else:
+            clock.tick(60)
+            if key_d and fire.rect.x <= 950:
+                fire.rect.x -= 50 / fps
+            elif key_a and fire.rect.x >= 0:
+                fire.rect.x += 150 / fps
+    else:
+        coef_for_jump = 0
+        clock.tick(fps)
     screen.fill("black")
     # for y in range(40):
     #     for x in range(40):
