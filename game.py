@@ -13,20 +13,24 @@ def load_image(s, key=None):
         if key == -1:
             key = image.get_at((0, 0))
             image.set_colorkey(key)
+        elif key == -2:
+            key = image.get_at((0, 0))
+            image.set_colorkey(key)
+            key = image.get_at((949, 0))
+            image.set_colorkey(key)
     else:
         image = image.convert_alpha()
     return image
 
 
-
 pygame.init()
-size = 1000, 700
+size = 1000, 800
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Свой курсор мыши")
 screen.fill("black")
-banner_fire = load_image("fire-bg.png", -1)
+# banner_fire = load_image("fire-bg.png", -1)
+# fire = pygame.transform.scale(banner_fire, (50, 80))
 banner_water = load_image("water-bg.png", -1)
-fire = pygame.transform.scale(banner_fire, (50, 80))
 water = pygame.transform.scale(banner_water, (50, 80))
 clock = pygame.time.Clock()
 
@@ -36,23 +40,34 @@ water_jumping_end = pygame.USEREVENT + 3
 fire_jumping_end = pygame.USEREVENT + 4
 
 fps = 60
-x_fire, y_fire = 10, 500
-x_water, y_water = 80, 500
+x_water, y_water = 80, 620
 key_right, key_left, key_up = [False for _ in range(3)]
 key_d, key_a, key_w = [False for _ in range(3)]
 jump_fire = False
 jump_water = False
 water_flag = False
 fire_flag = False
+all_sprites = pygame.sprite.Group()
 
-# all_sprites = pygame.sprite.Group()
-# fire = pygame.sprite.Sprite()
-# fire.image = load_image("fire-bg.png", -1)
-# fire.rect = fire.rect.size
-# all_sprites.add(fire)
-# fire.rect.x = 10
-# fire.rect.y = 5
+fire = pygame.sprite.Sprite()
+fire.image = load_image("fire-bg.png", -1)
+fire.image = pygame.transform.scale(fire.image, (50, 80))
+fire.rect = fire.image.get_rect()
+fire.rect.x = 150
+fire.rect.y = 600
+all_sprites.add(fire)
+fire.mask = pygame.mask.from_surface(fire.image)
 # fire.rect.width = 80
+
+platform = pygame.sprite.Sprite()
+platform.image = load_image("platform.png", -1)
+platform.rect = platform.image.get_rect()
+platform.image = pygame.transform.scale(platform.image, (1000, 120))
+platform.rect.x = 0
+platform.rect.y = 700
+all_sprites.add(platform)
+platform.mask = pygame.mask.from_surface(platform.image)
+
 
 running = True
 while running:
@@ -101,28 +116,44 @@ while running:
             pygame.time.set_timer(fire_jumping_end, 0)
             fire_flag = False
 
-    if y_fire < 600:
-        y_fire += 150 / fps
-    if y_water < 600:
+    # water
+    # water
+    # water
+    if y_water < 620:
         y_water += 150 / fps
-    if key_d and x_fire <= 950:
-        x_fire += 150 / fps
     if key_right and x_water <= 950:
         x_water += 150 / fps
-    if key_a and x_fire >= 0:
-        x_fire -= 150 / fps
     if key_left and x_water >= 0:
         x_water -= 150 / fps
     if jump_water:
         y_water -= 300 / fps
+
+    # fire
+    # fire
+    # fire
+    if not pygame.sprite.collide_mask(fire, platform):
+        fire.rect.y += 150 / fps
     if jump_fire:
-        y_fire -= 300 / fps
+        fire.rect.y -= 300 / fps
+    fire.rect.y -= 10
+    fire.rect.x += 1
+    if key_d and fire.rect.x <= 950:
+        if not pygame.sprite.collide_mask(fire, platform):
+            fire.rect.x += 150 / fps
+    if key_a and fire.rect.x >= 0:
+        if not pygame.sprite.collide_mask(fire, platform):
+            fire.rect.x -= 150 / fps
+    fire.rect.y += 10
+    fire.rect.x -= 1
 
     clock.tick(fps)
     screen.fill("black")
-    # all_sprites.draw(screen)
-    # all_sprites.update()
-    screen.blit(fire, (x_fire, y_fire))
+    # for y in range(40):
+    #     for x in range(40):
+    #         pygame.draw.rect(screen, pygame.Color("gray"), (
+    #             x * 25, y * 20, 25 + 1,
+    #             20 + 1), 1)
+    all_sprites.draw(screen)
+    all_sprites.update()
     screen.blit(water, (x_water, y_water))
-    pygame.draw.rect(screen, "light yellow", (0, 680, 1000, 700))
     pygame.display.flip()
