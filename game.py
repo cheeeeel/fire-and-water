@@ -23,6 +23,26 @@ def load_image(s, key=None):
     return image
 
 
+def vertical_barrier_up():
+    if start_place_of_ver_barrier_y - 200 < vertical_barrier.rect.y:
+        vertical_barrier.rect.y -= 150 / fps
+
+
+def vertical_barrier_down():
+    if not pygame.sprite.collide_mask(vertical_barrier, platform):
+        vertical_barrier.rect.y += 150 / fps
+
+
+def horizontal_barrier_up():
+    if start_place_of_hor_barrier_y - 100 < horizontal_barrier.rect.y:
+        horizontal_barrier.rect.y -= 150 / fps
+
+
+def horizontal_barrier_down():
+    if start_place_of_hor_barrier_y > horizontal_barrier.rect.y:
+        horizontal_barrier.rect.y += 150 / fps
+
+
 pygame.init()
 size = 1000, 800
 screen = pygame.display.set_mode(size)
@@ -48,7 +68,6 @@ jump_water = False
 water_flag = False
 fire_flag = False
 all_sprites = pygame.sprite.Group()
-coef_for_jump = 0
 
 fire = pygame.sprite.Sprite()
 fire.image = load_image("fire-bg.png", -1)
@@ -69,6 +88,43 @@ platform.rect.y = 700
 all_sprites.add(platform)
 platform.mask = pygame.mask.from_surface(platform.image)
 
+vertical_barrier = pygame.sprite.Sprite()
+vertical_barrier.image = load_image('vertical_barrier.png', -1)
+vertical_barrier.rect = vertical_barrier.image.get_rect()
+vertical_barrier.image = pygame.transform.scale(vertical_barrier.image, (25, 200))
+vertical_barrier.rect.x = 500
+vertical_barrier.rect.y = 500
+start_place_of_ver_barrier_y = vertical_barrier.rect.y
+all_sprites.add(vertical_barrier)
+vertical_barrier.mask = pygame.mask.from_surface(vertical_barrier.image)
+
+act_btn_v_b = pygame.sprite.Sprite()
+act_btn_v_b.image = load_image('activate_button.png', -1)
+act_btn_v_b.rect = act_btn_v_b.image.get_rect()
+act_btn_v_b.image = pygame.transform.scale(act_btn_v_b.image, (50, 25))
+act_btn_v_b.rect.x = 400
+act_btn_v_b.rect.y = 695
+all_sprites.add(act_btn_v_b)
+act_btn_v_b.mask = pygame.mask.from_surface(act_btn_v_b.image)
+
+horizontal_barrier = pygame.sprite.Sprite()
+horizontal_barrier.image = load_image('horizontal_barrier.png', -1)
+horizontal_barrier.rect = horizontal_barrier.image.get_rect()
+horizontal_barrier.image = pygame.transform.scale(horizontal_barrier.image, (200, 25))
+horizontal_barrier.rect.x = 800
+horizontal_barrier.rect.y = 600
+start_place_of_hor_barrier_y = horizontal_barrier.rect.y
+all_sprites.add(horizontal_barrier)
+horizontal_barrier.mask = pygame.mask.from_surface(horizontal_barrier.image)
+
+act_btn_h_b = pygame.sprite.Sprite()
+act_btn_h_b.image = load_image('activate_button.png', -1)
+act_btn_h_b.rect = act_btn_h_b.image.get_rect()
+act_btn_h_b.image = pygame.transform.scale(act_btn_h_b.image, (50, 25))
+act_btn_h_b.rect.x = 700
+act_btn_h_b.rect.y = 695
+all_sprites.add(act_btn_h_b)
+act_btn_h_b.mask = pygame.mask.from_surface(act_btn_h_b.image)
 
 running = True
 while running:
@@ -133,49 +189,33 @@ while running:
     # fire
     # fire
     if not pygame.sprite.collide_mask(fire, platform):
-        coef_for_jump += 150 / fps
         fire.rect.y += 150 / fps
     if jump_fire:
-        coef_for_jump += 300 / fps
-        fire.rect.y -= 500 / fps
+        fire.rect.y -= 300 / fps
+    if not not pygame.sprite.collide_mask(fire, act_btn_v_b):
+        vertical_barrier_up()
+    else:
+        vertical_barrier_down()
+    if not not pygame.sprite.collide_mask(fire, act_btn_h_b):
+        horizontal_barrier_up()
+    else:
+        horizontal_barrier_down()
     fire.rect.y -= 10
     fire.rect.x += 1
     if key_d and fire.rect.x <= 950:
-        if not pygame.sprite.collide_mask(fire, platform):
+        if not pygame.sprite.collide_mask(fire, platform) \
+                and not pygame.sprite.collide_mask(fire, vertical_barrier) \
+                or fire.rect.x >= vertical_barrier.rect.x - 25:
             fire.rect.x += 150 / fps
     if key_a and fire.rect.x >= 0:
-        if not pygame.sprite.collide_mask(fire, platform):
+        if not pygame.sprite.collide_mask(fire, platform) \
+                and not pygame.sprite.collide_mask(fire, vertical_barrier) \
+                or fire.rect.x + 50 <= vertical_barrier.rect.x + 25:
             fire.rect.x -= 150 / fps
     fire.rect.y += 10
     fire.rect.x -= 1
 
-    if jump_fire:
-        if coef_for_jump > 90:
-            if key_d and fire.rect.x <= 950:
-                fire.rect.x += 250 / fps
-            elif key_a and fire.rect.x >= 0:
-                fire.rect.x -= 150 / fps
-            clock.tick(15)
-        elif coef_for_jump > 40:
-            if key_d and fire.rect.x <= 950:
-                fire.rect.x += 100 / fps
-            elif key_a and fire.rect.x >= 0:
-                fire.rect.x -= 100 / fps
-            clock.tick(30)
-        else:
-            clock.tick(fps)
-    elif not pygame.sprite.collide_mask(fire, platform):
-        if 200 > coef_for_jump > 110:
-            clock.tick(40)
-        else:
-            clock.tick(60)
-            if key_d and fire.rect.x <= 950:
-                fire.rect.x -= 50 / fps
-            elif key_a and fire.rect.x >= 0:
-                fire.rect.x += 150 / fps
-    else:
-        coef_for_jump = 0
-        clock.tick(fps)
+    clock.tick(fps)
     screen.fill("black")
     # for y in range(40):
     #     for x in range(40):
