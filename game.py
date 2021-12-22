@@ -29,7 +29,7 @@ def vertical_barrier_up():
 
 
 def vertical_barrier_down():
-    if not pygame.sprite.collide_mask(vertical_barrier, platform):
+    if not pygame.sprite.collide_mask(vertical_barrier, platform) and not pygame.sprite.collide_mask(vertical_barrier, box):
         vertical_barrier.rect.y += 150 / fps
 
 
@@ -46,7 +46,7 @@ def horizontal_barrier_down():
 pygame.init()
 size = 1000, 800
 screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Свой курсор мыши")
+pygame.display.set_caption("@godofnatural")
 screen.fill("black")
 # banner_fire = load_image("fire-bg.png", -1)
 # fire = pygame.transform.scale(banner_fire, (50, 80))
@@ -126,6 +126,15 @@ act_btn_h_b.rect.y = 695
 all_sprites.add(act_btn_h_b)
 act_btn_h_b.mask = pygame.mask.from_surface(act_btn_h_b.image)
 
+box = pygame.sprite.Sprite()
+box.image = load_image("box.png")
+box.image = pygame.transform.scale(box.image, (35, 35))
+box.rect = box.image.get_rect()
+box.rect.x = 250
+box.rect.y = 600
+all_sprites.add(box)
+box.mask = pygame.mask.from_surface(box.image)
+
 running = True
 while running:
     for event in pygame.event.get():
@@ -188,32 +197,48 @@ while running:
     # fire
     # fire
     # fire
-    if not pygame.sprite.collide_mask(fire, platform):
+    if not pygame.sprite.collide_mask(fire, platform) and not pygame.sprite.collide_mask(fire, box):
         fire.rect.y += 150 / fps
     if jump_fire:
         fire.rect.y -= 300 / fps
-    if not not pygame.sprite.collide_mask(fire, act_btn_v_b):
+    if pygame.sprite.collide_mask(fire, act_btn_v_b) or pygame.sprite.collide_mask(box, act_btn_v_b):
         vertical_barrier_up()
     else:
         vertical_barrier_down()
-    if not not pygame.sprite.collide_mask(fire, act_btn_h_b):
+    if pygame.sprite.collide_mask(fire, act_btn_h_b) or pygame.sprite.collide_mask(box, act_btn_h_b):
         horizontal_barrier_up()
     else:
         horizontal_barrier_down()
     fire.rect.y -= 10
     fire.rect.x += 1
-    if key_d and fire.rect.x <= 950:
-        if not pygame.sprite.collide_mask(fire, platform) \
+    if key_d and fire.rect.right <= screen.get_width():
+        if not pygame.sprite.collide_mask(fire, platform)\
+                and not pygame.sprite.collide_mask(fire, box)\
                 and not pygame.sprite.collide_mask(fire, vertical_barrier) \
                 or fire.rect.x >= vertical_barrier.rect.x - 25:
             fire.rect.x += 150 / fps
-    if key_a and fire.rect.x >= 0:
-        if not pygame.sprite.collide_mask(fire, platform) \
+    if key_a and fire.rect.left >= 0:
+        if not pygame.sprite.collide_mask(fire, platform)\
+                and not pygame.sprite.collide_mask(fire, box) \
                 and not pygame.sprite.collide_mask(fire, vertical_barrier) \
                 or fire.rect.x + 50 <= vertical_barrier.rect.x + 25:
             fire.rect.x -= 150 / fps
     fire.rect.y += 10
     fire.rect.x -= 1
+
+    # box
+    # box
+    # box
+    if not pygame.sprite.collide_mask(box, platform):
+        box.rect.y += 150 / fps
+    if abs(box.rect.x - fire.rect.right + 5) < 3\
+            and abs(fire.rect.y - box.rect.y) < 50 and key_d\
+            and not pygame.sprite.collide_mask(box, vertical_barrier):
+        box.rect.x += 150 / fps
+    if abs(fire.rect.x - box.rect.right + 5) < 3\
+            and abs(fire.rect.y - box.rect.y) < 50 and key_a\
+            and not pygame.sprite.collide_mask(box, vertical_barrier):
+        box.rect.x -= 150 / fps
 
     clock.tick(fps)
     screen.fill("black")
