@@ -26,21 +26,30 @@ def load_image(s, key=None):
 def vertical_barrier_up():
     if start_place_of_ver_barrier_y - 200 < vertical_barrier.rect.y:
         vertical_barrier.rect.y -= 150 / fps
+    if act_btn_v_b.rect.y < start_place_of_act_btn + 4:
+        act_btn_v_b.rect.y += 60 / fps
 
 
 def vertical_barrier_down():
-    if not pygame.sprite.collide_mask(vertical_barrier, platform) and not pygame.sprite.collide_mask(vertical_barrier, box):
+    if not pygame.sprite.collide_mask(vertical_barrier, platform) \
+            and not pygame.sprite.collide_mask(vertical_barrier, box):
         vertical_barrier.rect.y += 150 / fps
+        if act_btn_v_b.rect.y > start_place_of_act_btn:
+            act_btn_v_b.rect.y -= 60 / fps
 
 
 def horizontal_barrier_up():
     if start_place_of_hor_barrier_y - 100 < horizontal_barrier.rect.y:
         horizontal_barrier.rect.y -= 150 / fps
+    if act_btn_h_b.rect.y < start_place_of_act_btn + 4:
+        act_btn_h_b.rect.y += 60 / fps
 
 
 def horizontal_barrier_down():
     if start_place_of_hor_barrier_y > horizontal_barrier.rect.y:
         horizontal_barrier.rect.y += 150 / fps
+        if act_btn_h_b.rect.y > start_place_of_act_btn:
+            act_btn_h_b.rect.y -= 60 / fps
 
 
 pygame.init()
@@ -123,6 +132,7 @@ act_btn_h_b.rect = act_btn_h_b.image.get_rect()
 act_btn_h_b.image = pygame.transform.scale(act_btn_h_b.image, (50, 25))
 act_btn_h_b.rect.x = 700
 act_btn_h_b.rect.y = 695
+start_place_of_act_btn = act_btn_v_b.rect.y
 all_sprites.add(act_btn_h_b)
 act_btn_h_b.mask = pygame.mask.from_surface(act_btn_h_b.image)
 
@@ -190,7 +200,7 @@ while running:
     if key_right and x_water <= 950:
         x_water += 150 / fps
     if key_left and x_water >= 0:
-        x_water -= 150 / fps
+        x_water -= 100 / fps
     if jump_water:
         y_water -= 300 / fps
 
@@ -212,17 +222,17 @@ while running:
     fire.rect.y -= 10
     fire.rect.x += 1
     if key_d and fire.rect.right <= screen.get_width():
-        if not pygame.sprite.collide_mask(fire, platform)\
-                and not pygame.sprite.collide_mask(fire, box)\
+        if not pygame.sprite.collide_mask(fire, platform) \
+                and not pygame.sprite.collide_mask(fire, box) \
                 and not pygame.sprite.collide_mask(fire, vertical_barrier) \
                 or fire.rect.x >= vertical_barrier.rect.x - 25:
             fire.rect.x += 150 / fps
     if key_a and fire.rect.left >= 0:
-        if not pygame.sprite.collide_mask(fire, platform)\
+        if not pygame.sprite.collide_mask(fire, platform) \
                 and not pygame.sprite.collide_mask(fire, box) \
                 and not pygame.sprite.collide_mask(fire, vertical_barrier) \
-                or fire.rect.x + 50 <= vertical_barrier.rect.x + 25:
-            fire.rect.x -= 150 / fps
+                or fire.rect.right <= vertical_barrier.rect.x + 25:
+            fire.rect.x -= 100 / fps
     fire.rect.y += 10
     fire.rect.x -= 1
 
@@ -231,22 +241,22 @@ while running:
     # box
     if not pygame.sprite.collide_mask(box, platform):
         box.rect.y += 150 / fps
-    if abs(box.rect.x - fire.rect.right + 5) < 3\
-            and abs(fire.rect.y - box.rect.y) < 50 and key_d\
+    if abs(box.rect.x - fire.rect.right + 5) < 3 \
+            and abs(fire.rect.y - box.rect.y) < 50 and key_d \
             and not pygame.sprite.collide_mask(box, vertical_barrier):
         box.rect.x += 150 / fps
-    if abs(fire.rect.x - box.rect.right + 5) < 3\
-            and abs(fire.rect.y - box.rect.y) < 50 and key_a\
+    if abs(fire.rect.x - box.rect.right + 5) < 3 \
+            and abs(fire.rect.y - box.rect.y) < 50 and key_a \
             and not pygame.sprite.collide_mask(box, vertical_barrier):
         box.rect.x -= 150 / fps
 
     clock.tick(fps)
     screen.fill("black")
-    # for y in range(40):
-    #     for x in range(40):
-    #         pygame.draw.rect(screen, pygame.Color("gray"), (
-    #             x * 25, y * 20, 25 + 1,
-    #             20 + 1), 1)
+    for y in range(40):
+        for x in range(40):
+            pygame.draw.rect(screen, pygame.Color("gray"), (
+                x * 25, y * 20, 25 + 1,
+                20 + 1), 1)
     all_sprites.draw(screen)
     all_sprites.update()
     screen.blit(water, (x_water, y_water))
