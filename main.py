@@ -4,24 +4,23 @@ import os
 
 class MainMenu:
     def __init__(self, screen, width, height):
-        font = pygame.font.Font(None, round(height // 5 * 0.6))
-
-        self.width = width
-        self.height = height
+        self.start_screen(width, height)
+        main_font = pygame.font.SysFont('Comic Sans MS', round(height // 5 * 0.5))
 
         setting_image = self.load_image("settings.png", -1)
-#        pygame.draw.rect(screen, (0, 0, 200), (width - 125, 25, 100, 100), 1)
-        screen.blit(setting_image, (width - 125, 25))
+        screen.blit(setting_image, (width - 115, 15))
 
-        self.txt_settings_btn = font.render('Игра по сети', True, (0, 0, 200))
-#        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 2.5, width - 200, round(height * 0.75 // 5)), 1)
+        self.txt_settings_btn = main_font.render('Игра по сети', True, (255, 201, 0))
         screen.blit(self.txt_settings_btn,
                     ((width - self.txt_settings_btn.get_width()) // 2, round(height // 5 * 2.75)))
 
-        self.txt_duo_btn = font.render('Один компьютер', True, (0, 0, 200))
-#        pygame.draw.rect(screen, (0, 0, 200), (100, height // 5 * 3.5, width - 200, round(height * 0.75 // 5)), 1)
+        self.txt_duo_btn = main_font.render('Один компьютер', True, (255, 201, 0))
         screen.blit(self.txt_duo_btn,
-                    ((width - self.txt_duo_btn.get_width()) // 2, round(height // 5 * 3.75)))
+                    ((width - self.txt_duo_btn.get_width()) // 2, round(height // 5 * 3.5)))
+
+        font_for_title = pygame.font.SysFont('Comic Sans MS', round(height // 5 * 0.6))
+        title = font_for_title.render('?name of game?', True, (255, 201, 0))
+        screen.blit(title, ((width - title.get_width()) // 2, round(height // 5 * 1.1)))
 
     def load_image(self, s, key=None):
         name = os.path.join("data", s)
@@ -38,17 +37,19 @@ class MainMenu:
             image = image.convert_alpha()
         return image
 
-    def go_next(self, x, y):
-        width = self.width
-        height = self.height
+    def go_next(self, x, y, width, height):
         m = self.txt_settings_btn.get_width()
         n = self.txt_duo_btn.get_width()
-        if (width - m) // 2 <= x <= (width + m) // 2 and height // 5 * 2.5 <= y <= round(height * 3.25 // 5):
+        if (width - m) // 2 <= x <= (width + m) // 2 and height // 5 * 2.8 <= y <= round(height * 3.35 // 5):
             print("""""")
-        elif (width - n) // 2 <= x <= (width + n) // 2 and height // 5 * 3.5 <= y <= round(height * 4.25 // 5):
+        elif (width - n) // 2 <= x <= (width + n) // 2 and height // 5 * 3.65 <= y <= round(height * 4.1 // 5):
             print("""""")
-        elif width - 125 <= x <= width - 25 and 25 <= y <= 125:
+        elif width - 115 <= x <= width - 15 and 15 <= y <= 115:
             print("""""")
+
+    def start_screen(self, width, height):
+        fon = pygame.transform.scale(self.load_image('main_menu_picture.jpg'), (width, height))
+        screen.blit(fon, (0, 0))
 
 
 class Game:
@@ -68,7 +69,7 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                main.go_next(*event.pos)
+                main.go_next(*event.pos, *size)
         pygame.display.flip()
 
     pygame.quit()

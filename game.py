@@ -252,11 +252,11 @@ while running:
 
     clock.tick(fps)
     screen.fill("black")
-    for y in range(40):
-        for x in range(40):
-            pygame.draw.rect(screen, pygame.Color("gray"), (
-                x * 25, y * 20, 25 + 1,
-                20 + 1), 1)
+    # for y in range(40):
+    #     for x in range(40):
+    #         pygame.draw.rect(screen, pygame.Color("gray"), (
+    #             x * 25, y * 20, 25 + 1,
+    #             20 + 1), 1)
     all_sprites.draw(screen)
     all_sprites.update()
     screen.blit(water, (x_water, y_water))
