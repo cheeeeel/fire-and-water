@@ -1,5 +1,6 @@
 import pygame
 import os
+from creating_levels import Level
 
 
 class MainMenu:
@@ -55,7 +56,7 @@ class MainMenu:
             print("""Один компьютер""")
         elif width // 75 <= x <= width // 75 + self.txt_redactor.get_width() \
                 and height * 0.78 <= y <= height * 0.84:
-            print("""Создать карту""")
+            self.creating_levels()
         elif width // 75 <= x <= width // 75 + self.txt_online_btn.get_width() \
                 and height * 0.85 <= y <= height * 0.91:
             print("""Игра по сети""")
@@ -83,6 +84,25 @@ class MainMenu:
         fon = pygame.transform.scale(self.load_image('main_menu_picture.jpg'), (width, height))
         screen.blit(fon, (0, 0))
 
+    def creating_levels(self):
+        size = 1000, 840
+        screen = pygame.display.set_mode(size)
+        level = Level(40, 31)
+        running = True
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    level.get_click(event.pos)
+                if event.type == pygame.MOUSEMOTION:
+                    level.set_color(event.pos)
+                screen.fill("black")
+                level.render(screen)
+                pygame.display.flip()
+        size = 1000, 800
+        screen = pygame.display.set_mode(size)
+
 
 class Game:
     pass  # пока файл game.py
@@ -95,7 +115,6 @@ if __name__ == '__main__':
     pygame.display.set_caption('God_of_natural')
     main = MainMenu(*size)
     running = True
-
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -105,5 +124,4 @@ if __name__ == '__main__':
             if event.type == pygame.MOUSEMOTION:
                 main.set_color(*event.pos, *size)
         pygame.display.flip()
-
     pygame.quit()
