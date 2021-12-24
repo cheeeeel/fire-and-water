@@ -257,7 +257,7 @@ while running:
     if abs(fire.rect.x - box.rect.right + 5) < 3 \
             and abs(fire.rect.y - box.rect.y) < 50 and key_a \
             and not pygame.sprite.collide_mask(box, vertical_barrier):
-        box.rect.x -= 150 / fps
+        box.rect.x -= 100 / fps
 
     clock.tick(fps)
     screen.fill("black")
