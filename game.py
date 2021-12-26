@@ -38,12 +38,17 @@ boxes = pygame.sprite.Group()
 water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
 
-# персонаж огонь
-class Fire(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+
+# персонажы
+class Heroes(pygame.sprite.Sprite):
+    def __init__(self, x, y, hero):
         super().__init__(all_sprites)
         self.add(heroes)
-        self.image = load_image("fire-bg.png", -1)
+        self.hero = hero
+        if self.hero == "fire":
+            self.image = load_image("fire-bg.png", -1)
+        else:
+            self.image = load_image("water-bg.png", -1)
         self.image = pygame.transform.scale(self.image, (50, 80))
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -70,35 +75,6 @@ class Fire(pygame.sprite.Sprite):
         self.rect = self.rect.move(4, 5)
 
 
-# персонаж вода(методы см. class Fire)
-class Water(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__(all_sprites)
-        self.add(heroes)
-        self.image = load_image("water-bg.png", -1)
-        self.image = pygame.transform.scale(self.image, (50, 80))
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.mask = pygame.mask.from_surface(self.image)
-
-    def update(self):
-        if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(0, 200 / fps)
-
-    def right(self):
-        self.rect = self.rect.move(10, -5)
-        if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(200 / fps, 0)
-        self.rect = self.rect.move(-10, 5)
-
-    def left(self):
-        self.rect = self.rect.move(-10, -5)
-        if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(-(200 / fps), 0)
-        self.rect = self.rect.move(10, 5)
-
-
 # платформа(составляет стены, пол уровня, остальные препятствия)
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -112,6 +88,7 @@ class Platform(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
+# плотный блок
 class Box(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(all_sprites)
@@ -155,8 +132,8 @@ def load_level():
 
 
 load_level()
-pl2 = Water(110, 600)
-pl1 = Fire(50, 600)
+pl2 = Heroes(110, 600, "water")
+pl1 = Heroes(50, 600, "fire")
 box1 = Box(200, 600)
 key_d, key_a, key_w = False, False, False
 key_right, key_left = False, False
@@ -181,6 +158,7 @@ while running:
     if keys[pygame.K_LEFT]:
         pl2.left()
         box1.left()
+
 
     all_sprites.update()
     screen.fill("black")
