@@ -35,6 +35,8 @@ all_sprites = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
 heroes = pygame.sprite.Group()
 boxes = pygame.sprite.Group()
+water_jumping_start = pygame.USEREVENT + 1
+fire_jumping_start = pygame.USEREVENT + 2
 
 # персонаж огонь
 class Fire(pygame.sprite.Sprite):
@@ -156,7 +158,7 @@ load_level()
 pl2 = Water(110, 600)
 pl1 = Fire(50, 600)
 box1 = Box(200, 600)
-key_d, key_a = False, False
+key_d, key_a, key_w = False, False, False
 key_right, key_left = False, False
 running = True
 while running:
@@ -164,33 +166,19 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
-                key_a = True
-            if event.key == pygame.K_d:
-                key_d = True
-            if event.key == pygame.K_RIGHT:
-                key_right = True
-            if event.key == pygame.K_LEFT:
-                key_left = True
-        elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_a:
-                key_a = False
-            if event.key == pygame.K_d:
-                key_d = False
-            if event.key == pygame.K_RIGHT:
-                key_right = False
-            if event.key == pygame.K_LEFT:
-                key_left = False
-    if key_d:
+            if event.key == pygame.K_w:
+                key_w = True
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_d]:
         pl1.right()
         box1.right()
-    if key_a:
+    if keys[pygame.K_a]:
         pl1.left()
         box1.left()
-    if key_right:
+    if keys[pygame.K_RIGHT]:
         pl2.right()
         box1.right()
-    if key_left:
+    if keys[pygame.K_LEFT]:
         pl2.left()
         box1.left()
 
