@@ -2,7 +2,6 @@ import pygame
 import os
 
 
-# загрузка фото
 def load_image(s, key=None):
     name = os.path.join("data", s)
     try:
@@ -25,84 +24,50 @@ def load_image(s, key=None):
 
 
 pygame.init()
-size = 1000, 800
+all_sprites = pygame.sprite.Group()
+pygame.init()
+size = 1000, 806
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("@godofnatural")
 screen.fill("black")
+banner_water = load_image("water-bg.png", -1)
+water = pygame.transform.scale(banner_water, (50, 80))
 clock = pygame.time.Clock()
-fps = 60
-all_sprites = pygame.sprite.Group()
-platforms = pygame.sprite.Group()
-heroes = pygame.sprite.Group()
-boxes = pygame.sprite.Group()
-
-# персонаж огонь
-class Fire(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__(all_sprites)
-        self.add(heroes)
-        self.image = load_image("fire-bg.png", -1)
-        self.image = pygame.transform.scale(self.image, (50, 80))
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.mask = pygame.mask.from_surface(self.image)
-
-    # гравитация
-    def update(self):
-        if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(0, 200 / fps)
-
-    # движение вправо
-    def right(self):
-        self.rect = self.rect.move(4, -5)
-        if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(200 / fps, 0)
-        self.rect = self.rect.move(-4, 5)
-
-    # движение влево
-    def left(self):
-        self.rect = self.rect.move(-4, -5)
-        if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(-(200 / fps), 0)
-        self.rect = self.rect.move(4, 5)
 
 
-# персонаж вода(методы см. class Fire)
-class Water(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__(all_sprites)
-        self.add(heroes)
-        self.image = load_image("water-bg.png", -1)
-        self.image = pygame.transform.scale(self.image, (50, 80))
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.mask = pygame.mask.from_surface(self.image)
-
-    def update(self):
-        if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(0, 200 / fps)
-
-    def right(self):
-        self.rect = self.rect.move(10, -5)
-        if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(200 / fps, 0)
-        self.rect = self.rect.move(-10, 5)
-
-    def left(self):
-        self.rect = self.rect.move(-10, -5)
-        if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(-(200 / fps), 0)
-        self.rect = self.rect.move(10, 5)
+def vertical_barrier_up():
+    if start_place_of_ver_barrier_y - 200 < vertical_barrier.rect.y:
+        vertical_barrier.rect.y -= 150 / fps
+    if act_btn_v_b.rect.y < start_place_of_act_btn + 4:
+        act_btn_v_b.rect.y += 60 / fps
 
 
-# платформа(составляет стены, пол уровня, остальные препятствия)
+def vertical_barrier_down():
+    if not pygame.sprite.collide_mask(vertical_barrier, platform) \
+            and not pygame.sprite.collide_mask(vertical_barrier, box):
+        vertical_barrier.rect.y += 150 / fps
+        if act_btn_v_b.rect.y > start_place_of_act_btn:
+            act_btn_v_b.rect.y -= 60 / fps
+
+
+def horizontal_barrier_up():
+    if start_place_of_hor_barrier_y - 100 < horizontal_barrier.rect.y:
+        horizontal_barrier.rect.y -= 150 / fps
+    if act_btn_h_b.rect.y < start_place_of_act_btn + 4:
+        act_btn_h_b.rect.y += 60 / fps
+
+
+def horizontal_barrier_down():
+    if start_place_of_hor_barrier_y > horizontal_barrier.rect.y:
+        horizontal_barrier.rect.y += 150 / fps
+        if act_btn_h_b.rect.y > start_place_of_act_btn:
+            act_btn_h_b.rect.y -= 60 / fps
+
+
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(all_sprites)
-        self.add(platforms)
-        self.image = load_image("stone.png")
+        self.image = load_image("platform.png", -1)
         self.image = pygame.transform.scale(self.image, (24, 24))
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -110,54 +75,99 @@ class Platform(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
-class Box(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__(all_sprites)
-        self.add(boxes)
-        self.image = load_image("box.png")
-        self.image = pygame.transform.scale(self.image, (35, 35))
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        all_sprites.add(self)
-        self.mask = pygame.mask.from_surface(self.image)
+platforms = []
+name = os.path.join("levels", "test.txt")
+with open(name) as f:
+    raws = f.readlines()
+    for i in range(len(raws)):
+        for j in range(len(raws[i])):
+            if raws[i][j] == "1":
+                platforms.append(Platform(j * 24, i * 24))
+# platform = Platform(0, 700, 1000, 120)
 
-    def update(self):
-        if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(0, 200 / fps)
+water_jumping_start = pygame.USEREVENT + 1
+fire_jumping_start = pygame.USEREVENT + 2
+water_jumping_end = pygame.USEREVENT + 3
+fire_jumping_end = pygame.USEREVENT + 4
 
-    def right(self):
-        self.rect = self.rect.move(1, -5)
-        if not pygame.sprite.spritecollideany(self, platforms):
-            if pygame.sprite.spritecollideany(self, heroes):
-                self.rect = self.rect.move(200 / fps, 0)
-        self.rect = self.rect.move(-1, 5)
+fps = 60
+x_water, y_water = 80, 620
+key_right, key_left, key_up = [False for _ in range(3)]
+key_d, key_a, key_w = [False for _ in range(3)]
+jump_fire = False
+jump_water = False
+water_flag = False
+fire_flag = False
 
-    def left(self):
-        self.rect = self.rect.move(-1, -5)
-        if not pygame.sprite.spritecollideany(self, platforms):
-            if pygame.sprite.spritecollideany(self, heroes):
-                self.rect = self.rect.move(-(200 / fps), 0)
-        self.rect = self.rect.move(1, 5)
-
-
-# загрузка уровня
-def load_level():
-    name = os.path.join("levels", "test.txt")
-    with open(name) as f:
-        raws = f.readlines()
-        for i in range(len(raws)):
-            for j in range(len(raws[i])):
-                if raws[i][j] == "1":
-                    Platform(20 + j * 24, 28 + i * 24)
+fire = pygame.sprite.Sprite()
+fire.image = load_image("fire-bg.png", -1)
+fire.image = pygame.transform.scale(fire.image, (50, 80))
+fire.rect = fire.image.get_rect()
+fire.rect.x = 150
+fire.rect.y = 600
+all_sprites.add(fire)
+fire.mask = pygame.mask.from_surface(fire.image)
+# fire.rect.width = 80
 
 
-load_level()
-pl2 = Water(110, 600)
-pl1 = Fire(50, 600)
-box1 = Box(200, 600)
-key_d, key_a = False, False
-key_right, key_left = False, False
+vertical_barrier = pygame.sprite.Sprite()
+vertical_barrier.image = load_image('vertical_barrier.png', -1)
+vertical_barrier.rect = vertical_barrier.image.get_rect()
+vertical_barrier.image = pygame.transform.scale(vertical_barrier.image, (25, 200))
+vertical_barrier.rect.x = 500
+vertical_barrier.rect.y = 500
+start_place_of_ver_barrier_y = vertical_barrier.rect.y
+all_sprites.add(vertical_barrier)
+vertical_barrier.mask = pygame.mask.from_surface(vertical_barrier.image)
+
+act_btn_v_b = pygame.sprite.Sprite()
+act_btn_v_b.image = load_image('activate_button.png', -1)
+act_btn_v_b.rect = act_btn_v_b.image.get_rect()
+act_btn_v_b.image = pygame.transform.scale(act_btn_v_b.image, (50, 25))
+act_btn_v_b.rect.x = 400
+act_btn_v_b.rect.y = 695
+all_sprites.add(act_btn_v_b)
+act_btn_v_b.mask = pygame.mask.from_surface(act_btn_v_b.image)
+
+horizontal_barrier = pygame.sprite.Sprite()
+horizontal_barrier.image = load_image('horizontal_barrier.png', -1)
+horizontal_barrier.rect = horizontal_barrier.image.get_rect()
+horizontal_barrier.image = pygame.transform.scale(horizontal_barrier.image, (200, 25))
+horizontal_barrier.rect.x = 800
+horizontal_barrier.rect.y = 600
+start_place_of_hor_barrier_y = horizontal_barrier.rect.y
+all_sprites.add(horizontal_barrier)
+horizontal_barrier.mask = pygame.mask.from_surface(horizontal_barrier.image)
+
+act_btn_h_b = pygame.sprite.Sprite()
+act_btn_h_b.image = load_image('activate_button.png', -1)
+act_btn_h_b.rect = act_btn_h_b.image.get_rect()
+act_btn_h_b.image = pygame.transform.scale(act_btn_h_b.image, (50, 25))
+act_btn_h_b.rect.x = 700
+act_btn_h_b.rect.y = 695
+start_place_of_act_btn = act_btn_v_b.rect.y
+all_sprites.add(act_btn_h_b)
+act_btn_h_b.mask = pygame.mask.from_surface(act_btn_h_b.image)
+
+box = pygame.sprite.Sprite()
+box.image = load_image("box.png")
+box.image = pygame.transform.scale(box.image, (35, 35))
+box.rect = box.image.get_rect()
+box.rect.x = 250
+box.rect.y = 600
+all_sprites.add(box)
+box.mask = pygame.mask.from_surface(box.image)
+
+
+
+class Sprite_Mouse_Location(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.rect = pygame.Rect( 0 , 0 , 1 , 1 ) # no updating needed here
+
+
+
+mouse_sprite = Sprite_Mouse_Location()
 running = True
 while running:
     for event in pygame.event.get():
@@ -172,6 +182,12 @@ while running:
                 key_right = True
             if event.key == pygame.K_LEFT:
                 key_left = True
+            if event.key == pygame.K_UP and not jump_water and not water_flag:
+                jump_water = True
+                pygame.time.set_timer(water_jumping_start, 650)
+            if event.key == pygame.K_w and not jump_fire and not fire_flag:
+                jump_fire = True
+                pygame.time.set_timer(fire_jumping_start, 650)
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 key_a = False
@@ -181,21 +197,100 @@ while running:
                 key_right = False
             if event.key == pygame.K_LEFT:
                 key_left = False
-    if key_d:
-        pl1.right()
-        box1.right()
-    if key_a:
-        pl1.left()
-        box1.left()
-    if key_right:
-        pl2.right()
-        box1.right()
-    if key_left:
-        pl2.left()
-        box1.left()
+        if event.type == water_jumping_start:
+            pygame.time.set_timer(water_jumping_start, 0)
+            pygame.time.set_timer(water_jumping_end, 650)
+            water_flag = True
+            jump_water = False
+        if event.type == water_jumping_end:
+            pygame.time.set_timer(water_jumping_end, 0)
+            water_flag = False
+        if event.type == fire_jumping_start:
+            pygame.time.set_timer(fire_jumping_start, 0)
+            pygame.time.set_timer(fire_jumping_end, 800)
+            fire_flag = True
+            jump_fire = False
+        if event.type == fire_jumping_end:
+            pygame.time.set_timer(fire_jumping_end, 0)
+            fire_flag = False
+        # if event.type == pygame.MOUSEMOTION:
+        #     mouse_sprite.rect.x, mouse_sprite.rect.y = pygame.mouse.get_pos()  # have to have this to update mouse here or get wrong location
+        #     for s in all_sprites:  # can't have outside the event or it will continuously check
+        #         if pygame.sprite.collide_rect(s, mouse_sprite):
+        #             print(s.rect.x)
+#                s.pygame.clickCheck(mouse_sprite)
 
-    all_sprites.update()
+    # fire
+    # fire
+    # fire
+    # for platform in all_sprites:
+    #     if isinstance(platform, Platform):
+    #         if not pygame.sprite.collide_rect(fire, platform):
+    #             fire.rect.y += 150 / fps
+    #             #print( 1)
+    # for platform in all_sprites:
+    if not pygame.sprite.collide_mask(fire, platform)\
+            and not pygame.sprite.collide_mask(fire, box)\
+            and not pygame.sprite.collide_mask(fire, horizontal_barrier):
+        fire.rect.y += 75 / fps
+    if jump_fire:
+        fire.rect.y -= 300 / fps
+    if pygame.sprite.collide_mask(fire, act_btn_v_b) or pygame.sprite.collide_mask(box, act_btn_v_b):
+        vertical_barrier_up()
+    else:
+        vertical_barrier_down()
+    if pygame.sprite.collide_mask(fire, act_btn_h_b) or pygame.sprite.collide_mask(box, act_btn_h_b):
+        horizontal_barrier_up()
+    else:
+        horizontal_barrier_down()
+    fire.rect.y -= 10 / fps
+    fire.rect.x += 1 / fps
+    if key_d and fire.rect.right <= screen.get_width():
+        if not pygame.sprite.collide_mask(fire, platform) \
+                and not pygame.sprite.collide_mask(fire, box) \
+                and not pygame.sprite.collide_mask(fire, vertical_barrier)\
+                and not pygame.sprite.collide_mask(fire, horizontal_barrier) \
+                or fire.rect.x >= vertical_barrier.rect.x - 25:
+            fire.rect.x += 150 / fps
+    if key_a and fire.rect.left >= 0:
+        if not pygame.sprite.collide_mask(fire, platform) \
+                and not pygame.sprite.collide_mask(fire, box) \
+                and not pygame.sprite.collide_mask(fire, vertical_barrier) \
+                or fire.rect.right <= vertical_barrier.rect.x + 25:
+            fire.rect.x -= 100 / fps
+    fire.rect.y += 10 / fps
+    fire.rect.x -= 1 / fps
+
+    # box
+    # box
+    # box
+    if not pygame.sprite.collide_mask(box, platform):
+        box.rect.y += 150 / fps
+    if abs(box.rect.x - fire.rect.right + 5) < 3 \
+            and 0 <= fire.rect.bottom - box.rect.y < 39 and key_d \
+            and not pygame.sprite.collide_mask(box, vertical_barrier):
+        box.rect.x += 150 / fps
+
+    if abs(fire.rect.x - box.rect.right + 5) < 3 \
+            and abs(fire.rect.y - box.rect.y) < 50 and key_a \
+            and not pygame.sprite.collide_mask(box, vertical_barrier):
+        box.rect.x -= 100 / fps
+
+    # water
+    # water
+    # water
+    # if y_water < 620:
+    #     y_water += 150 / fps
+    # if key_right and x_water <= 950:
+    #     x_water += 150 / fps
+    # if key_left and x_water >= 0:
+    #     x_water -= 100 / fps
+    # if jump_water:
+    #     y_water -= 300 / fps
+
+    clock.tick(fps)
     screen.fill("black")
     all_sprites.draw(screen)
+    all_sprites.update()
+    screen.blit(water, (x_water, y_water))
     pygame.display.flip()
-    clock.tick(fps)
