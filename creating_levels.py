@@ -95,7 +95,7 @@ class Level:
             elif 30 < mouse_pos[0] < 30 + self.change_object.get_width():
                 print("Сменить объект")
             elif 730 < mouse_pos[0] < 730 + self.save_map.get_width():
-                print("Сохранить поле")
+                self.save()
 
         cell = self.get_cell(mouse_pos)
         if cell is None:
@@ -108,6 +108,19 @@ class Level:
             for x in range(self.width):
                 self.board[x][y] = 0
         self.floor()
+
+    def save(self):
+        field = []
+        for y in range(self.height):
+            row = ""
+            for x in range(self.width):
+                row += str(self.board[x][y])
+            field.append(row)
+        level = "test.txt"
+        name = os.path.join("levels", level)
+        with open(name, "w+") as f:
+            for row in field:
+                f.write(row + "\n")
 
     # обновляет значение ячейки на поле
     def on_click(self, cell_coords):
@@ -135,20 +148,20 @@ class Level:
             self.default_color()
 
 
-# pygame.init()
-# size = 1000, 840
-# screen = pygame.display.set_mode(size)
-# level = Level(40, 31)
-# running = True
-# while running:
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             running = False
-#         if event.type == pygame.MOUSEBUTTONDOWN:
-#             level.get_click(event.pos)
-#         if event.type == pygame.MOUSEMOTION:
-#             level.set_color(event.pos)
-#         screen.fill("black")
-#         level.render(screen)
-#         pygame.display.flip()
-# pygame.quit()
+pygame.init()
+size = 1000, 840
+screen = pygame.display.set_mode(size)
+level = Level(40, 31)
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            level.get_click(event.pos)
+        if event.type == pygame.MOUSEMOTION:
+            level.set_color(event.pos)
+        screen.fill("black")
+        level.render(screen)
+        pygame.display.flip()
+pygame.quit()
