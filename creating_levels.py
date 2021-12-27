@@ -1,6 +1,6 @@
 import pygame
 import os
-
+from time import sleep
 
 def load_image(s, key=None):
     name = os.path.join("data", s)
@@ -36,7 +36,6 @@ class Level:
         self.photo = load_image("stone.png", -1)
         self.floor()
         self.default_color()
-
         self.main_font = pygame.font.SysFont('Segoe Print', 25)
 
     def default_color(self):
@@ -151,17 +150,27 @@ class Level:
 pygame.init()
 size = 1000, 840
 screen = pygame.display.set_mode(size)
+place_delay = pygame.USEREVENT + 1
 level = Level(40, 31)
+left_button_pressed = False
 running = True
+pos = (0, 0)
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            level.get_click(event.pos)
+            left_button_pressed = True
+            pygame.time.set_timer(place_delay, 200)
+        if event.type == pygame.MOUSEBUTTONUP:
+            left_button_pressed = False
+            pygame.time.set_timer(place_delay, 0)
         if event.type == pygame.MOUSEMOTION:
             level.set_color(event.pos)
-        screen.fill("black")
-        level.render(screen)
-        pygame.display.flip()
+            pos = event.pos
+        if event.type == place_delay and left_button_pressed:
+            level.get_click(pos)
+    screen.fill("black")
+    level.render(screen)
+    pygame.display.flip()
 pygame.quit()

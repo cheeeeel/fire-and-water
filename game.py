@@ -54,10 +54,12 @@ class Heroes(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
         self.mask = pygame.mask.from_surface(self.image)
+        self.jump_flag = False
 
     # гравитация
     def update(self):
-        if not pygame.sprite.spritecollideany(self, platforms):
+        if not pygame.sprite.spritecollideany(self, platforms)\
+                and not pygame.sprite.spritecollideany(self, boxes):
             self.rect = self.rect.move(0, 200 / fps)
 
     # движение вправо
@@ -73,6 +75,14 @@ class Heroes(pygame.sprite.Sprite):
         if not pygame.sprite.spritecollideany(self, platforms):
             self.rect = self.rect.move(-(200 / fps), 0)
         self.rect = self.rect.move(4, 5)
+
+    def jump(self):
+        self.rect = self.rect.move(0, -5)
+        if not pygame.sprite.spritecollideany(self, platforms):
+            self.rect = self.rect.move(0, -400 / fps)
+        else:
+            self.jump_flag = False
+        self.rect = self.rect.move(0, 5)
 
 
 # платформа(составляет стены, пол уровня, остальные препятствия)
@@ -132,19 +142,32 @@ def load_level():
 
 
 load_level()
-pl2 = Heroes(110, 600, "water")
-pl1 = Heroes(50, 600, "fire")
-box1 = Box(200, 600)
-key_d, key_a, key_w = False, False, False
-key_right, key_left = False, False
+pl2 = Heroes(110, 670, "water")
+pl1 = Heroes(50, 670, "fire")
+box1 = Box(200, 580)
 running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                pygame.time.set_timer(water_jumping_start, 650)
+                pl2.jump_flag = True
             if event.key == pygame.K_w:
-                key_w = True
+                pygame.time.set_timer(fire_jumping_start, 650)
+                pl1.jump_flag = True
+        if event.type == fire_jumping_start:
+            if not pl1.jump_flag:
+                pygame.time.set_timer(fire_jumping_start, 0)
+            else:
+                pl1.jump_flag = False
+        if event.type == water_jumping_start:
+            if not pl2.jump_flag:
+                pygame.time.set_timer(water_jumping_start, 0)
+            else:
+                pl2.jump_flag = False
+
     keys = pygame.key.get_pressed()
     if keys[pygame.K_d]:
         pl1.right()
@@ -158,7 +181,10 @@ while running:
     if keys[pygame.K_LEFT]:
         pl2.left()
         box1.left()
-
+    if pl1.jump_flag:
+        pl1.jump()
+    if pl2.jump_flag:
+        pl2.jump()
 
     all_sprites.update()
     screen.fill("black")
