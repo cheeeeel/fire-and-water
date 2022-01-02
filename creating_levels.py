@@ -1,9 +1,9 @@
 import pygame
 import os
 
-
 barriers = {}
 buttons = {}
+keys_for_btns = {}
 
 
 def load_image(s, key=None):
@@ -41,7 +41,8 @@ class Level:
         self.obj_index = 0
         self.floor()
         self.default_color()
-        self.helper_bar, self.helper_btn = 0, 0
+        self.counter = 0
+        self.cr_btn = False
 
         self.main_font = pygame.font.SysFont('Segoe Print', 25)
 
@@ -60,10 +61,10 @@ class Level:
         self.save_map_color = "white"
 
     # настройка внешнего вида
-    def set_view(self, left, top, cell_size):
-        self.left = left
-        self.top = top
-        self.cell_size = cell_size
+    # def set_view(self, left, top, cell_size):
+    #     self.left = left
+    #     self.top = top
+    #     self.cell_size = cell_size
 
     # создает пол на поле
     def floor(self):
@@ -72,7 +73,10 @@ class Level:
 
     # отрисовывает карту
     def render(self, screen):
-        self.current_object = pygame.transform.scale(self.set_object(self.obj_index), (24, 24))
+        if self.cr_btn:
+            self.current_object = pygame.transform.scale(self.set_object(2), (48, 24))
+        else:
+            self.current_object = pygame.transform.scale(self.set_object(self.obj_index), (24, 24))
         for y in range(self.height):
             for x in range(self.width):
                 if self.board[x][y] == 1:
@@ -114,10 +118,10 @@ class Level:
         if 780 < mouse_pos[1] < 780 + self.clear_map.get_height():
             if 390 < mouse_pos[0] < 390 + self.clear_map.get_width():
                 self.clear()
-            elif 30 < mouse_pos[0] < 30 + self.change_object.get_width():
-                self.obj_index = (self.obj_index + 1) % len(self.object)
+            elif 30 < mouse_pos[0] < 30 + self.change_object.get_width() and not self.cr_btn:
+                self.obj_index = (self.obj_index + 1) % (len(self.object) - 1)
             elif 730 < mouse_pos[0] < 730 + self.save_map.get_width():
-                self.save()
+                self.save("test.txt")
 
         cell = self.get_cell(mouse_pos)
         if cell is None:
@@ -130,66 +134,40 @@ class Level:
             for x in range(self.width):
                 self.board[x][y] = 0
         self.floor()
+        self.counter = 0
+        self.cr_btn = False
+        barriers.clear()
+        buttons.clear()
+        keys_for_btns.clear()
 
-    def save(self):
+    def save(self, file_name):
         field = []
         for y in range(self.height):
             row = ""
             for x in range(self.width):
                 row += str(self.board[x][y])
             field.append(row)
-        level = "test.txt"
-        name = os.path.join("levels", level)
-        with open(name, "w+") as f:
+        name = os.path.join("levels", file_name)
+        with open(name, "w+", newline='\n') as f:
             for row in field:
-                f.write(row + "\n")
+                f.write(row + '\n')
+            f.write('\n')
+            for m in list(barriers.keys()):
+                f.write(f'{barriers[m]}; {buttons[m]}\n')
 
     # обновляет значение ячейки на поле
     def on_click(self, cell_coords, key_for_bar=None):
         i = cell_coords[0]
         j = cell_coords[1]
-        if self.board[i][j] != 2 and self.board[i][j] != 0:
-            self.board[i][j] = 0
-            return
-        elif self.board[i][j] == 2:
-            self.delete_barrier(cell_coords)
-            return
+        if self.cr_btn:
+            self.create_btn(cell_coords, self.counter)
+        elif self.board[i][j] == 2 or self.board[i][j] == 3:
+            self.delete_barrier_button(cell_coords)
         elif self.board[i - 1][j] == 3:
-            self.board[i - 1][j] = 0
-            return
-        if self.obj_index == 1:
-            self.helper_bar += 1
-            if key_for_bar:
-                if self.width - i <= 5:
-                    barriers[self.helper_bar] = []
-                    for num in range(1, 6):
-                        self.board[self.width - num][j] = 2
-                        barriers[self.helper_bar].append((self.width - num, j))
-                else:
-                    barriers[self.helper_bar] = []
-                    for num in range(5):
-                        self.board[i + num][j] = 2
-                        barriers[self.helper_bar].append((i + num, j))
-            elif not key_for_bar:
-                if self.height - j >= self.height - 5:
-                    barriers[self.helper_bar] = []
-                    for num in range(5):
-                        self.board[i][num] = 2
-                        barriers[self.helper_bar].append((i, num))
-                else:
-                    barriers[self.helper_bar] = []
-                    for num in range(5):
-                        self.board[i][j - num] = 2
-                        barriers[self.helper_bar].append((i, j - num))
-        elif self.obj_index == 2:
-            buttons[self.helper_btn] = []
-            if i + 1 == self.width:
-                self.board[i - 1][j] = 3
-                buttons[self.helper_btn].extend([(i - 1, j), (i, j)])
-            else:
-                self.board[i][j] = 3
-                buttons[self.helper_btn].extend([(i, j), (i + 1, j)])
-            self.helper_btn += 1
+            self.delete_barrier_button((i - 1, j))
+        elif self.obj_index == 1:
+            self.counter += 1
+            self.create_barrier(cell_coords, self.counter, key_for_bar)
         else:
             self.board[i][j] = self.obj_index + 1 - self.board[i][j]
         # определяет объект по размеру(криво)
@@ -202,23 +180,126 @@ class Level:
 
     # смена цвета при наведении
     def set_color(self, mouse_pos):
-        if 780 < mouse_pos[1] < 780 + self.clear_map.get_height():
-            if 390 < mouse_pos[0] < 390 + self.clear_map.get_width():
-                self.clear_map_color = "yellow"
-            elif 30 < mouse_pos[0] < 30 + self.change_object.get_width():
-                self.change_object_color = "yellow"
-            elif 730 < mouse_pos[0] < 730 + self.save_map.get_width():
-                self.save_map_color = "yellow"
+        if 390 < mouse_pos[0] < 390 + self.clear_map.get_width() and \
+                780 < mouse_pos[1] < 780 + self.clear_map.get_height():
+            self.clear_map_color = "yellow"
+        elif 30 < mouse_pos[0] < 30 + self.change_object.get_width() and \
+                780 < mouse_pos[1] < 780 + self.clear_map.get_height():
+            self.change_object_color = "yellow"
+        elif 730 < mouse_pos[0] < 730 + self.save_map.get_width() and \
+                780 < mouse_pos[1] < 780 + self.clear_map.get_height():
+            self.save_map_color = "yellow"
         else:
             self.default_color()
 
-    # обработка удаления барьера
-    def delete_barrier(self, coords):
+    # обработка удаления барьера и кнопки
+    def delete_barrier_button(self, coords):
         for i in list(barriers.keys()):
             if any(coords == k for k in barriers[i]):
                 for x, y in barriers[i]:
                     self.board[x][y] = 0
+                for x, y in buttons[i]:
+                    self.board[x][y] = 0
                 barriers.pop(i)
+                buttons.pop(i)
+                keys_for_btns.pop(i)
+                return
+        for i in list(buttons.keys()):
+            if any(coords == k for k in buttons[i]):
+                for x, y in barriers[i]:
+                    self.board[x][y] = 0
+                for x, y in buttons[i]:
+                    self.board[x][y] = 0
+                barriers.pop(i)
+                buttons.pop(i)
+                keys_for_btns.pop(i)
+                return
+
+    # создание барьера
+    def create_barrier(self, cell_coords, cnt, key_for_bar=None):
+        x = cell_coords[0]
+        y = cell_coords[1]
+        if key_for_bar:
+            for i in list(barriers.keys()):
+                try:
+                    if abs(min(j[0] for j in barriers[i] if y == j[1]) - x) <= 5:
+                        return
+                except ValueError:
+                    pass
+            for i in list(buttons.keys()):
+                try:
+                    if -2 <= min(j[0] for j in buttons[i] if y == j[1]) - x <= 5:
+                        return
+                except ValueError:
+                    pass
+            if self.width - x <= 5:
+                barriers[cnt] = []
+                keys_for_btns[cnt] = key_for_bar
+                for num in range(1, 6):
+                    self.board[self.width - num][y] = 2
+                    barriers[cnt].append((self.width - num, y))
+            else:
+                barriers[cnt] = []
+                keys_for_btns[cnt] = key_for_bar
+                for num in range(5):
+                    self.board[x + num][y] = 2
+                    barriers[cnt].append((x + num, y))
+        elif key_for_bar is False:
+            for i in list(barriers.keys()):
+                try:
+                    if abs(max(j[1] for j in barriers[i] if x == j[0]) - y) <= 5:
+                        return
+                except ValueError:
+                    pass
+            for i in list(buttons.keys()):
+                try:
+                    if -5 <= min(j[1] for j in buttons[i] if x == j[0] or x + 1 == j[0]) - y <= 1:
+                        return
+                except ValueError:
+                    pass
+            if self.height - y >= self.height - 5:
+                barriers[cnt] = []
+                keys_for_btns[cnt] = key_for_bar
+                for num in range(5):
+                    self.board[x][num] = 2
+                    barriers[cnt].append((x, num))
+            else:
+                barriers[cnt] = []
+                keys_for_btns[cnt] = key_for_bar
+                for num in range(5):
+                    self.board[x][y - num] = 2
+                    barriers[cnt].append((x, y - num))
+        self.cr_btn = True
+
+    # создание кнопки, активирующей барьер
+    def create_btn(self, cell_coords, cnt):
+        x = cell_coords[0]
+        y = cell_coords[1]
+        buttons[cnt] = []
+        for i in list(barriers.keys()):
+            try:
+                if keys_for_btns[cnt]:
+                    if -5 <= min(j[0] for j in barriers[i] if y == j[1]) - x <= 2:
+                        return
+                else:
+                    if -1 <= min(j[0] for j in barriers[i] if y == j[1]) - x <= 2:
+                        return
+            except ValueError:
+                pass
+        for i in list(buttons.keys()):
+            try:
+                if abs(min(j[0] for j in buttons[i] if y == j[1]) - x) <= 2:
+                    return
+            except ValueError:
+                pass
+        if x + 1 == self.width:
+            self.board[x - 1][y] = 3
+            buttons[cnt] = [(x - 1, y), (x, y)]
+        else:
+            self.board[x][y] = 3
+            self.board[x + 1][y] = 0
+            buttons[cnt] = [(x, y), (x + 1, y)]
+        self.cr_btn = False
 
 
 pygame.init()

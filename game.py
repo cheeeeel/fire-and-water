@@ -2,6 +2,9 @@ import pygame
 import os
 
 
+barriers = []
+buttons = []
+
 # загрузка фото
 def load_image(s, key=None):
     name = os.path.join("data", s)
@@ -35,6 +38,8 @@ all_sprites = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
 heroes = pygame.sprite.Group()
 boxes = pygame.sprite.Group()
+btns = pygame.sprite.Group()
+bars = pygame.sprite.Group()
 water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
 
@@ -58,8 +63,9 @@ class Heroes(pygame.sprite.Sprite):
 
     # гравитация
     def update(self):
-        if not pygame.sprite.spritecollideany(self, platforms)\
-                and not pygame.sprite.spritecollideany(self, boxes):
+        if not pygame.sprite.spritecollideany(self, platforms) \
+                and not pygame.sprite.spritecollideany(self, boxes) and not \
+                pygame.sprite.spritecollideany(self, bars):
             self.rect = self.rect.move(0, 200 / fps)
 
     # движение вправо
@@ -130,15 +136,58 @@ class Box(pygame.sprite.Sprite):
         self.rect = self.rect.move(1, 5)
 
 
+class Barrier(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.add(bars)
+        self.image = load_image("barrier.png")
+        self.image = pygame.transform.scale(self.image, (24, 24))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        all_sprites.add(self)
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def up_down(self, index):
+        pass
+
+
+class Button(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.add(btns)
+        self.image = load_image("activate_button.png", -1)
+        self.image = pygame.transform.scale(self.image, (48, 24))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        all_sprites.add(self)
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def up_down(self, index):
+        pass
+
+
 # загрузка уровня
 def load_level():
     name = os.path.join("levels", "test.txt")
     with open(name) as f:
-        raws = f.readlines()
-        for i in range(len(raws)):
-            for j in range(len(raws[i])):
-                if raws[i][j] == "1":
+        rows = f.readlines()
+        for row in rows[rows.index('\n') + 1:]:
+            bar = [tuple(map(int, i.split(', ')))
+                   for i in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
+            btn = [tuple(map(int, i.split(', ')))
+                   for i in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')][:-1]
+            barriers.append(bar)
+            buttons.extend(btn)
+        for i in range(len(rows[:rows.index('\n')])):
+            for j in range(len(rows[i])):
+                if rows[i][j] == "1":
                     Platform(20 + j * 24, 28 + i * 24)
+                elif rows[i][j] == '2':
+                    Barrier(20 + j * 24, 28 + i * 24)
+                elif rows[i][j] == '3':
+                    Button(20 + j * 24, 28 + i * 24)
 
 
 load_level()
