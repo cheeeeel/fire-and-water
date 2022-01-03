@@ -40,6 +40,8 @@ heroes = pygame.sprite.Group()
 boxes = pygame.sprite.Group()
 btns = pygame.sprite.Group()
 bars = pygame.sprite.Group()
+red_portal = pygame.sprite.Group()
+blue_portal = pygame.sprite.Group()
 water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
 
@@ -60,6 +62,8 @@ class Heroes(pygame.sprite.Sprite):
         self.rect.y = y
         self.mask = pygame.mask.from_surface(self.image)
         self.jump_flag = False
+        self.in_portal = False
+
 
     # гравитация
     def update(self):
@@ -67,6 +71,11 @@ class Heroes(pygame.sprite.Sprite):
                 and not pygame.sprite.spritecollideany(self, boxes) and not \
                 pygame.sprite.spritecollideany(self, bars):
             self.rect = self.rect.move(0, 200 / fps)
+        if self.hero == "fire" and pygame.sprite.spritecollideany(self, red_portal) or\
+           self.hero == "water" and pygame.sprite.spritecollideany(self, blue_portal):
+            self.in_portal = True
+        else:
+            self.in_portal = False
 
     # движение вправо
     def right(self):
@@ -168,6 +177,22 @@ class Button(pygame.sprite.Sprite):
         pass
 
 
+class Portal(pygame.sprite.Sprite):
+    def __init__(self, x, y, type_of):
+        super().__init__()
+        if type_of == "red":
+            self.add(red_portal)
+        elif type_of == "blue":
+            self.add(blue_portal)
+        self.image = load_image(f"portal_{type_of}.png", -1)
+        self.image = pygame.transform.scale(self.image, (48, 72))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        all_sprites.add(self)
+        self.mask = pygame.mask.from_surface(self.image)
+
+
 # загрузка уровня
 def load_level():
     name = os.path.join("levels", "test.txt")
@@ -188,6 +213,10 @@ def load_level():
                     Barrier(20 + j * 24, 28 + i * 24)
                 elif rows[i][j] == '3':
                     Button(20 + j * 24, 28 + i * 24)
+                elif rows[i][j] == "4":
+                    Portal(20 + j * 24, 28 + i * 24, "red")
+                elif rows[i][j] == "5":
+                    Portal(20 + j * 24, 28 + i * 24, "blue")
 
 
 load_level()
@@ -234,9 +263,15 @@ while running:
         pl1.jump()
     if pl2.jump_flag:
         pl2.jump()
-
-    all_sprites.update()
-    screen.fill("black")
-    all_sprites.draw(screen)
-    pygame.display.flip()
-    clock.tick(fps)
+    if pl1.in_portal and pl2.in_portal:
+        screen.fill("black")
+        main_font = pygame.font.SysFont('Segoe Print', 60)
+        win = main_font.render("Вы победили!", True, "white")
+        screen.blit(win, (300, 400))
+        pygame.display.flip()
+    else:
+        all_sprites.update()
+        screen.fill("black")
+        all_sprites.draw(screen)
+        pygame.display.flip()
+        clock.tick(fps)
