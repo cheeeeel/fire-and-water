@@ -32,19 +32,24 @@ class Level:
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.board = [[0 for _ in range(height)] for _ in range(width + 1)]
+        self.default_color()
+        self.main_font = pygame.font.SysFont('Segoe Print', 25)
         # значения по умолчанию
         self.left = 20
         self.top = 28
         self.cell_size = 24
-        self.object = ["stone.png", "barrier.png", "activate_button.png"]
+        self.object = ["stone.png", "barrier.png", "activate_button.png", "portal_red.png", "portal_blue.png", "2"]
         self.obj_index = 0
-        self.default_color()
         self.counter = 0
         self.cr_btn = False
+        self.board = [[0 for _ in range(height)] for _ in range(width + 1)]
+        self.stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
+        self.bar = pygame.transform.scale(load_image("barrier.png"), (24, 24))
+        self.btn = pygame.transform.scale(load_image("activate_button.png"), (48, 24))
+        self.red_portal = pygame.transform.scale(load_image("portal_red.png"), (48, 72))
+        self.blue_portal = pygame.transform.scale(load_image("portal_blue.png"), (48, 72))
         self.floor()
 
-        self.main_font = pygame.font.SysFont('Segoe Print', 25)
 
     # настройка внешнего вида
     def set_view(self, left, top, cell_size):
@@ -80,6 +85,10 @@ class Level:
     def floor(self):
         for y in range(len(self.board)):
             self.board[y][-1] = 1
+            self.board[y][0] = 1
+        self.board[0] = [1 for _ in range(self.width)]
+        self.board[-2] = [1 for _ in range(self.width)]
+
 
     # отрисовывает карту
     def render(self, screen):
@@ -90,14 +99,15 @@ class Level:
         for y in range(self.height):
             for x in range(self.width):
                 if self.board[x][y] == 1:
-                    stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
-                    screen.blit(stone, (x * 24 + 20, y * 24 + 28))
+                    screen.blit(self.stone, (x * 24 + 20, y * 24 + 28))
                 elif self.board[x][y] == 2:
-                    bar = pygame.transform.scale(load_image("barrier.png"), (24, 24))
-                    screen.blit(bar, (x * 24 + 20, y * 24 + 28))
+                    screen.blit(self.bar, (x * 24 + 20, y * 24 + 28))
                 elif self.board[x][y] == 3:
-                    btn = pygame.transform.scale(load_image("activate_button.png"), (48, 24))
-                    screen.blit(btn, (x * 24 + 20, y * 24 + 28))
+                    screen.blit(self.btn, (x * 24 + 20, y * 24 + 28))
+                elif self.board[x][y] == 4:
+                    screen.blit(self.red_portal, (x * 24 + 20, y * 24 + 28))
+                elif self.board[x][y] == 5:
+                    screen.blit(self.blue_portal, (x * 24 + 20, y * 24 + 28))
 
         for y in range(self.height):
             for x in range(self.width):
@@ -183,6 +193,19 @@ class Level:
         elif self.obj_index == 1:
             self.counter += 1
             self.create_barrier(cell_coords, self.counter, key_for_bar)
+        elif self.obj_index in [3, 4]:
+            flag = True
+            for x in range(2):
+                for y in range(3):
+                    if self.board[i + x][j + y]:
+                        if self.board[i + x][j + y] not in [4, 5]:
+                            flag = False
+            if flag:
+                if str(self.obj_index + 1) in str(self.board):
+                    for row in range(len(self.board)):
+                        if self.obj_index + 1 in self.board[row]:
+                            self.board[row][self.board[row].index(self.obj_index + 1)] = 0
+                self.board[i][j] = self.obj_index + 1 - self.board[i][j]
         else:
             self.board[i][j] = self.obj_index + 1 - self.board[i][j]
 
@@ -317,11 +340,9 @@ pygame.init()
 size = 1000, 840
 screen = pygame.display.set_mode(size)
 level = Level(40, 31)
+level.render(screen)
 running = True
 while running:
-    screen.fill("black")
-    level.render(screen)
-    pygame.display.flip()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -334,5 +355,9 @@ while running:
                 level.get_click(event.pos)
         if event.type == pygame.MOUSEMOTION:
             level.set_color(event.pos)
+    screen.fill("black")
+    level.render(screen)
+    pygame.display.flip()
 
 pygame.quit()
+
