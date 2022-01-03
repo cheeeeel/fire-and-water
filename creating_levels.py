@@ -38,7 +38,7 @@ class Level:
         self.left = 20
         self.top = 28
         self.cell_size = 24
-        self.object = ["stone.png", "barrier.png", "activate_button.png", "portal_red.png", "portal_blue.png", "2"]
+        self.object = ["stone.png", "barrier.png", "activate_button.png", "portal_red.png", "portal_blue.png"]
         self.obj_index = 0
         self.counter = 0
         self.cr_btn = False
@@ -49,7 +49,6 @@ class Level:
         self.red_portal = pygame.transform.scale(load_image("portal_red.png"), (48, 72))
         self.blue_portal = pygame.transform.scale(load_image("portal_blue.png"), (48, 72))
         self.floor()
-
 
     # настройка внешнего вида
     def set_view(self, left, top, cell_size):
@@ -88,7 +87,6 @@ class Level:
             self.board[y][0] = 1
         self.board[0] = [1 for _ in range(self.width)]
         self.board[-2] = [1 for _ in range(self.width)]
-
 
     # отрисовывает карту
     def render(self, screen):
@@ -141,7 +139,9 @@ class Level:
             if 390 < mouse_pos[0] < 390 + self.clear_map.get_width():
                 self.clear()
             elif 30 < mouse_pos[0] < 30 + self.change_object.get_width() and not self.cr_btn:
-                self.obj_index = (self.obj_index + 1) % (len(self.object) - 1)
+                self.obj_index = (self.obj_index + 1) % len(self.object)
+                if self.obj_index == 2:
+                    self.obj_index += 1
             elif 730 < mouse_pos[0] < 730 + self.save_map.get_width():
                 self.save("test.txt")
         elif 0 < mouse_pos[1] < self.edit_map.get_height() - 15:
@@ -360,4 +360,3 @@ while running:
     pygame.display.flip()
 
 pygame.quit()
-
