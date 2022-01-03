@@ -42,7 +42,7 @@ class Level:
         self.obj_index = 0
         self.counter = 0
         self.cr_btn = False
-        self.board = [[0 for _ in range(height)] for _ in range(width + 1)]
+        self.board = [[0 for _ in range(height)] for _ in range(width)]
         self.stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
         self.bar = pygame.transform.scale(load_image("barrier.png"), (24, 24))
         self.btn = pygame.transform.scale(load_image("activate_button.png"), (48, 24))
@@ -86,7 +86,7 @@ class Level:
             self.board[y][-1] = 1
             self.board[y][0] = 1
         self.board[0] = [1 for _ in range(self.width)]
-        self.board[-2] = [1 for _ in range(self.width)]
+        self.board[-1] = [1 for _ in range(self.width)]
 
     # отрисовывает карту
     def render(self, screen):
@@ -195,11 +195,14 @@ class Level:
             self.create_barrier(cell_coords, self.counter, key_for_bar)
         elif self.obj_index in [3, 4]:
             flag = True
-            for x in range(2):
-                for y in range(3):
-                    if self.board[i + x][j + y]:
-                        if self.board[i + x][j + y] not in [4, 5]:
-                            flag = False
+            try:
+                for x in range(2):
+                    for y in range(3):
+                        if self.board[i + x][j + y]:
+                            if self.board[i + x][j + y] not in [4, 5]:
+                                flag = False
+            except IndexError:
+                pass
             if flag:
                 if str(self.obj_index + 1) in str(self.board):
                     for row in range(len(self.board)):
