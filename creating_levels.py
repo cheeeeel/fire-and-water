@@ -39,10 +39,10 @@ class Level:
         self.cell_size = 24
         self.object = ["stone.png", "barrier.png", "activate_button.png"]
         self.obj_index = 0
-        self.floor()
         self.default_color()
         self.counter = 0
         self.cr_btn = False
+        self.floor()
 
         self.main_font = pygame.font.SysFont('Segoe Print', 25)
 
@@ -55,10 +55,20 @@ class Level:
     def set_object(self, index):
         return load_image(self.object[index])
 
+    def edit_board(self):
+        name = os.path.join("levels", "test.txt")
+        with open(name) as f:
+            text = f.read().split("\n")
+            for y in range(len(text) - 2):
+                row = list(text[y])
+                for x in range(len(row)):
+                    self.board[x][y] = int(row[x])
+
     def default_color(self):
         self.clear_map_color = "white"
         self.change_object_color = "white"
         self.save_map_color = "white"
+        self.edit_map_color = "white"
 
     # настройка внешнего вида
     # def set_view(self, left, top, cell_size):
@@ -98,6 +108,8 @@ class Level:
         self.change_object = self.main_font.render('Сменить объект', True, self.change_object_color)
         self.clear_map = self.main_font.render('Очистить карту', True, self.clear_map_color)
         self.save_map = self.main_font.render('Сохранить карту', True, self.save_map_color)
+        self.edit_map = self.main_font.render("Редактировать text.txt", True, self.edit_map_color)
+        screen.blit(self.edit_map, (10, -15))
         screen.blit(self.change_object, (30, 780))
         screen.blit(self.current_object, (280, 790))
         screen.blit(self.clear_map, (390, 780))
@@ -122,6 +134,9 @@ class Level:
                 self.obj_index = (self.obj_index + 1) % (len(self.object) - 1)
             elif 730 < mouse_pos[0] < 730 + self.save_map.get_width():
                 self.save("test.txt")
+        elif 0 < mouse_pos[1] < self.edit_map.get_height() - 15:
+            if 10 < mouse_pos[0] < self.edit_map.get_width():
+                self.edit_board()
 
         cell = self.get_cell(mouse_pos)
         if cell is None:
@@ -170,13 +185,6 @@ class Level:
             self.create_barrier(cell_coords, self.counter, key_for_bar)
         else:
             self.board[i][j] = self.obj_index + 1 - self.board[i][j]
-        # определяет объект по размеру(криво)
-        # if "622" in str(self.photo):
-        #     self.board[i][j] = "water"
-        # elif "679" in str(self.photo):
-        #     self.board[i][j] = "fire"
-        # elif "512" in str(self.photo):
-        #     self.board[i][j] = 1 - self.board[i][j]
 
     # смена цвета при наведении
     def set_color(self, mouse_pos):
@@ -189,6 +197,9 @@ class Level:
         elif 730 < mouse_pos[0] < 730 + self.save_map.get_width() and \
                 780 < mouse_pos[1] < 780 + self.clear_map.get_height():
             self.save_map_color = "yellow"
+        elif 0 < mouse_pos[1] < self.edit_map.get_height() - 15 and \
+                10 < mouse_pos[0] < self.edit_map.get_width():
+            self.edit_map_color = "yellow"
         else:
             self.default_color()
 
@@ -308,6 +319,9 @@ screen = pygame.display.set_mode(size)
 level = Level(40, 31)
 running = True
 while running:
+    screen.fill("black")
+    level.render(screen)
+    pygame.display.flip()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -320,7 +334,5 @@ while running:
                 level.get_click(event.pos)
         if event.type == pygame.MOUSEMOTION:
             level.set_color(event.pos)
-        screen.fill("black")
-        level.render(screen)
-        pygame.display.flip()
+
 pygame.quit()
