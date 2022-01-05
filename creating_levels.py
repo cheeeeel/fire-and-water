@@ -277,6 +277,8 @@ class Level:
                         return
                 except ValueError:
                     pass
+            if self.board[x + 1][y] + self.board[x + 2][y] + self.board[x + 3][y] + self.board[x + 4][y]:
+                return
             if self.width - x <= 5:
                 barriers[cnt] = []
                 keys_for_btns[cnt] = key_for_bar
@@ -302,6 +304,8 @@ class Level:
                         return
                 except ValueError:
                     pass
+            if self.board[x][y - 1] + self.board[x][y - 2] + self.board[x][y - 3] + self.board[x][y - 4]:
+                return
             if self.height - y >= self.height - 5:
                 barriers[cnt] = []
                 keys_for_btns[cnt] = key_for_bar
