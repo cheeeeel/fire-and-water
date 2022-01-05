@@ -71,10 +71,9 @@ class Level:
                 self.counter += 1
                 block_bar = [tuple(map(int, k.split(', ')))
                              for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
-                btn = [tuple(map(int, k.split(', ')))
-                       for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')][:-1]
+                btn = tuple(int(k) for k in row.split('; ')[1].replace('\n', '')[2:-2].split(', '))
                 barriers[self.counter] = block_bar
-                buttons[self.counter] = btn
+                buttons[self.counter] = [btn]
 
     def default_color(self):
         self.clear_map_color = "white"

@@ -241,10 +241,9 @@ def load_level():
         for row in rows[rows.index('\n') + 1:]:
             block_bar = [tuple(map(int, k.split(', ')))
                          for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
-            btn = [tuple(map(int, k.split(', ')))
-                   for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')][:-1]
+            btn = tuple(int(k) for k in row.split('; ')[1].replace('\n', '')[2:-2].split(', '))
             barriers_cords.append(block_bar)
-            buttons_cords.extend(btn)
+            buttons_cords.append(btn)
         for i in range(len(rows[:rows.index('\n')])):
             for j in range(len(rows[i])):
                 if rows[i][j] == "1":
