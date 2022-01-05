@@ -63,10 +63,18 @@ class Level:
         name = os.path.join("levels", "test.txt")
         with open(name) as f:
             text = f.read().split("\n")
-            for y in range(len(text) - 2):
+            for y in range(len(text[:text.index('')])):
                 row = list(text[y])
                 for x in range(len(row)):
                     self.board[x][y] = int(row[x])
+            for row in text[text.index('') + 1:-1]:
+                self.counter += 1
+                block_bar = [tuple(map(int, k.split(', ')))
+                             for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
+                btn = [tuple(map(int, k.split(', ')))
+                       for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')][:-1]
+                barriers[self.counter] = block_bar
+                buttons[self.counter] = btn
 
     def default_color(self):
         self.clear_map_color = "white"
