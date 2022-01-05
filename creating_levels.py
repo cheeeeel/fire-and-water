@@ -45,9 +45,9 @@ class Level:
         self.board = [[0 for _ in range(height)] for _ in range(width)]
         self.stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
         self.bar = pygame.transform.scale(load_image("barrier.png"), (24, 24))
-        self.btn = pygame.transform.scale(load_image("activate_button.png"), (48, 24))
-        self.red_portal = pygame.transform.scale(load_image("portal_red.png"), (48, 72))
-        self.blue_portal = pygame.transform.scale(load_image("portal_blue.png"), (48, 72))
+        self.btn = pygame.transform.scale(load_image("activate_button.png", -1), (48, 24))
+        self.red_portal = pygame.transform.scale(load_image("portal_red.png", -1), (48, 72))
+        self.blue_portal = pygame.transform.scale(load_image("portal_blue.png", -1), (48, 72))
         self.floor()
 
     # настройка внешнего вида
@@ -57,7 +57,7 @@ class Level:
         self.cell_size = cell_size
 
     def set_object(self, index):
-        return load_image(self.object[index])
+        return load_image(self.object[index], -1)
 
     def edit_board(self):
         name = os.path.join("levels", "test.txt")

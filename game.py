@@ -1,9 +1,9 @@
 import pygame
 import os
 
-
 barriers = []
 buttons = []
+
 
 # загрузка фото
 def load_image(s, key=None):
@@ -64,15 +64,14 @@ class Heroes(pygame.sprite.Sprite):
         self.jump_flag = False
         self.in_portal = False
 
-
     # гравитация
     def update(self):
         if not pygame.sprite.spritecollideany(self, platforms) \
                 and not pygame.sprite.spritecollideany(self, boxes) and not \
                 pygame.sprite.spritecollideany(self, bars):
             self.rect = self.rect.move(0, 200 / fps)
-        if self.hero == "fire" and pygame.sprite.spritecollideany(self, red_portal) or\
-           self.hero == "water" and pygame.sprite.spritecollideany(self, blue_portal):
+        if self.hero == "fire" and pygame.sprite.spritecollideany(self, red_portal) or \
+                self.hero == "water" and pygame.sprite.spritecollideany(self, blue_portal):
             self.in_portal = True
         else:
             self.in_portal = False
@@ -224,6 +223,7 @@ pl2 = Heroes(110, 670, "water")
 pl1 = Heroes(50, 670, "fire")
 box1 = Box(200, 580)
 running = True
+fon = pygame.transform.scale(load_image('fon_for_game.png'), (960, 744))
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -270,8 +270,8 @@ while running:
         screen.blit(win, (300, 400))
         pygame.display.flip()
     else:
+        screen.blit(fon, (20, 28))
         all_sprites.update()
-        screen.fill("black")
         all_sprites.draw(screen)
         pygame.display.flip()
         clock.tick(fps)
