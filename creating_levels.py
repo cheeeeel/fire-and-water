@@ -41,6 +41,7 @@ class Level:
         self.object = ["stone.png", "barrier.png", "activate_button.png", "portal_red.png", "portal_blue.png"]
         self.obj_index = 0
         self.counter = 0
+        self.flag_end = False
         self.cr_btn = False
         self.board = [[0 for _ in range(height)] for _ in range(width)]
         self.stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
@@ -71,9 +72,10 @@ class Level:
                 self.counter += 1
                 block_bar = [tuple(map(int, k.split(', ')))
                              for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
-                btn = tuple(int(k) for k in row.split('; ')[1].replace('\n', '')[2:-2].split(', '))
+                block_btn = [tuple(map(int, k.split(', ')))
+                             for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')]
                 barriers[self.counter] = block_bar
-                buttons[self.counter] = [btn]
+                buttons[self.counter] = block_btn
 
     def default_color(self):
         self.clear_map_color = "white"
@@ -191,7 +193,10 @@ class Level:
     def on_click(self, cell_coords, key_for_bar=None):
         i = cell_coords[0]
         j = cell_coords[1]
-        if self.cr_btn:
+        if self.flag_end:
+            self.flag_end = False
+            self.cr_btn = False
+        elif self.cr_btn:
             self.create_btn(cell_coords, self.counter)
         elif self.board[i][j] == 2 or self.board[i][j] == 3:
             self.delete_barrier_button(cell_coords)
@@ -246,7 +251,10 @@ class Level:
                     self.board[x][y] = 0
                 barriers.pop(i)
                 buttons.pop(i)
-                keys_for_btns.pop(i)
+                try:
+                    keys_for_btns.pop(i)
+                except KeyError:
+                    pass
                 return
         for i in list(buttons.keys()):
             if any(coords == k for k in buttons[i]):
@@ -256,7 +264,10 @@ class Level:
                     self.board[x][y] = 0
                 barriers.pop(i)
                 buttons.pop(i)
-                keys_for_btns.pop(i)
+                try:
+                    keys_for_btns.pop(i)
+                except KeyError:
+                    pass
                 return
 
     # создание барьера
@@ -323,7 +334,6 @@ class Level:
     def create_btn(self, cell_coords, cnt):
         x = cell_coords[0]
         y = cell_coords[1]
-        buttons[cnt] = []
         for i in list(barriers.keys()):
             try:
                 if keys_for_btns[cnt]:
@@ -340,14 +350,21 @@ class Level:
                     return
             except ValueError:
                 pass
+        if self.board[x + 1][y]:
+            return
         if x + 1 == self.width:
             self.board[x - 1][y] = 3
-            buttons[cnt] = [(x - 1, y), (x, y)]
+            try:
+                buttons[cnt].extend([(x - 1, y)])
+            except KeyError:
+                buttons[cnt] = [(x - 1, y)]
         else:
             self.board[x][y] = 3
             self.board[x + 1][y] = 0
-            buttons[cnt] = [(x, y), (x + 1, y)]
-        self.cr_btn = False
+            try:
+                buttons[cnt].extend([(x, y)])
+            except KeyError:
+                buttons[cnt] = [(x, y)]
 
 
 pygame.init()
@@ -361,6 +378,8 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
+            if level.cr_btn and event.button == 3:
+                level.flag_end = True
             if event.button == 1:
                 level.get_click(event.pos, True)
             elif event.button == 3:

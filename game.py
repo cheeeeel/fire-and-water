@@ -66,7 +66,7 @@ class Heroes(pygame.sprite.Sprite):
         self.jump_flag = False
         self.in_portal = False
         self.on_button = False
-        self.index = -100
+        self.index = (-100, -100)
 
     # гравитация
     def update(self):
@@ -74,20 +74,28 @@ class Heroes(pygame.sprite.Sprite):
                 and not pygame.sprite.spritecollideany(self, boxes) and not \
                 pygame.sprite.spritecollideany(self, bars) and not pygame.sprite.spritecollideany(self, btns):
             self.rect = self.rect.move(0, 200 / fps)
+        for block in barriers:
+            for bar in block:
+                if bar.up_flag and not not pygame.sprite.spritecollideany(self, bars) and \
+                        (pl1.on_button or pl2.on_button or box1.on_button):
+                    self.rect = self.rect.move(0, - 120 / fps)
+                    break
         if self.hero == "fire" and pygame.sprite.spritecollideany(self, red_portal) or \
                 self.hero == "water" and pygame.sprite.spritecollideany(self, blue_portal):
             self.in_portal = True
         else:
             self.in_portal = False
-        for i, j in buttons_cords:
-            if (i - 1) * 24 <= self.rect.x - 20 <= (i + 1) * 24 and \
-                    j * 24 <= self.rect.y + 52 <= (j + 1) * 24:
-                self.on_button = True
-                self.index = buttons_cords.index((i, j))
-                break
-            else:
-                self.on_button = False
-                self.index = -100
+        for block in buttons_cords:
+            for i, j in block:
+                if (i - 1) * 24 <= self.rect.x - 20 <= (i + 1) * 24 and \
+                        j * 24 <= self.rect.y + 52 <= (j + 1) * 24:
+                    self.on_button = True
+                    ind_bl = buttons_cords.index(block)
+                    self.index = (ind_bl, buttons_cords[ind_bl].index((i, j)))
+                    return
+                else:
+                    self.on_button = False
+                    self.index = (-100, -100)
 
     # движение вправо
     def right(self):
@@ -138,22 +146,24 @@ class Box(pygame.sprite.Sprite):
         all_sprites.add(self)
         self.mask = pygame.mask.from_surface(self.image)
         self.on_button = False
-        self.index = -100
+        self.index = (-100, -100)
 
     def update(self):
         if not pygame.sprite.spritecollideany(self, platforms) and \
                 not pygame.sprite.spritecollideany(self, bars) and \
                 not pygame.sprite.spritecollideany(self, btns):
             self.rect = self.rect.move(0, 200 / fps)
-        for i, j in buttons_cords:
-            if (i - 0.5) * 24 <= self.rect.x - 20 <= (i + 1) * 24 and \
-                    j * 24 <= self.rect.y + 7 <= (j + 1) * 24:
-                self.on_button = True
-                self.index = buttons_cords.index((i, j))
-                break
-            else:
-                self.on_button = False
-                self.index = -100
+        for block in buttons_cords:
+            for x, y in block:
+                if (x - 0.5) * 24 <= self.rect.x - 20 <= (x + 1) * 24 and \
+                        y * 24 <= self.rect.y + 7 <= (y + 1) * 24:
+                    self.on_button = True
+                    ind_bl = buttons_cords.index(block)
+                    self.index = (ind_bl, buttons_cords[ind_bl].index((x, y)))
+                    break
+                else:
+                    self.on_button = False
+                    self.index = (-100, -100)
 
     def right(self):
         self.rect = self.rect.move(1, -5)
@@ -183,10 +193,14 @@ class Barrier(pygame.sprite.Sprite):
         self.rect.y = y
         all_sprites.add(self)
         self.mask = pygame.mask.from_surface(self.image)
+        self.up_flag = False
 
     def up(self):
         if self.rect.y > self.start_rect - 120:
             self.rect.y -= 120 / fps
+            self.up_flag = True
+        else:
+            self.up_flag = False
 
     def down(self):
         if self.rect.y < self.start_rect:
@@ -241,9 +255,10 @@ def load_level():
         for row in rows[rows.index('\n') + 1:]:
             block_bar = [tuple(map(int, k.split(', ')))
                          for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
-            btn = tuple(int(k) for k in row.split('; ')[1].replace('\n', '')[2:-2].split(', '))
+            block_btn = [tuple(map(int, k.split(', ')))
+                         for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')]
             barriers_cords.append(block_bar)
-            buttons_cords.append(btn)
+            buttons_cords.append(block_btn)
         for i in range(len(rows[:rows.index('\n')])):
             for j in range(len(rows[i])):
                 if rows[i][j] == "1":
@@ -258,15 +273,18 @@ def load_level():
                 bar = Barrier(20 + x * 24, 28 + y * 24)
                 block_bar.append(bar)
             barriers.append(block_bar)
-        for x, y in buttons_cords:
-            btn = Button(20 + x * 24, 28 + y * 24)
-            buttons.append(btn)
+        for block_cords in buttons_cords:
+            block_btn = []
+            for x, y in block_cords:
+                btn = Button(20 + x * 24, 28 + y * 24)
+                block_btn.append(btn)
+            buttons.append(block_btn)
 
 
 load_level()
 pl2 = Heroes(110, 670, "water")
 pl1 = Heroes(50, 670, "fire")
-box1 = Box(600, 450)
+box1 = Box(200, 450)
 running = True
 fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
 while running:
@@ -309,11 +327,15 @@ while running:
     if pl2.jump_flag:
         pl2.jump()
     if pl1.on_button or pl2.on_button or box1.on_button:
-        ind = max(pl1.index, pl2.index, box1.index)
-        buttons[ind].down()
-        block = barriers[ind]
-        for bar in block:
-            bar.up()
+        ind = []
+        for i in [pl1, pl2, box1]:
+            if i.index[0] != -100:
+                ind.append(i.index)
+        for x, y in ind:
+            buttons[x][y].down()
+            block = barriers[x]
+            for bar in block:
+                bar.up()
     if pl1.in_portal and pl2.in_portal:
         screen.fill("black")
         main_font = pygame.font.SysFont('Segoe Print', 60)
@@ -322,8 +344,9 @@ while running:
         pygame.display.flip()
     else:
         if not (pl1.on_button or pl2.on_button or box1.on_button):
-            for btn in buttons:
-                btn.up()
+            for block in buttons:
+                for btn in block:
+                    btn.up()
             for block in barriers:
                 for bar in block:
                     bar.down()
