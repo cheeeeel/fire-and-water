@@ -194,6 +194,11 @@ class Level:
         i = cell_coords[0]
         j = cell_coords[1]
         if self.flag_end:
+            for key in list(barriers.keys()):
+                try:
+                    buttons[key]
+                except KeyError:
+                    self.create_btn(cell_coords, self.counter)
             self.flag_end = False
             self.cr_btn = False
         elif self.cr_btn:
