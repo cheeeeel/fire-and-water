@@ -44,6 +44,10 @@ btns = pygame.sprite.Group()
 bars = pygame.sprite.Group()
 red_portal = pygame.sprite.Group()
 blue_portal = pygame.sprite.Group()
+water = pygame.sprite.Group()
+lava = pygame.sprite.Group()
+poison = pygame.sprite.Group()
+
 water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
 
@@ -66,6 +70,7 @@ class Heroes(pygame.sprite.Sprite):
         self.jump_flag = False
         self.in_portal = False
         self.on_button = False
+        self.lose = False
         self.index = (-100, -100)
 
     # гравитация
@@ -85,6 +90,10 @@ class Heroes(pygame.sprite.Sprite):
             self.in_portal = True
         else:
             self.in_portal = False
+        if self.hero == "fire" and pygame.sprite.spritecollideany(self, water) or \
+                self.hero == "water" and pygame.sprite.spritecollideany(self, lava) or \
+                pygame.sprite.spritecollideany(self, poison):
+            self.lose = True
         for block in buttons_cords:
             for i, j in block:
                 if (i - 1) * 24 <= self.rect.x - 20 <= (i + 1) * 24 and \
@@ -247,6 +256,30 @@ class Portal(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
+class Liquids(pygame.sprite.Sprite):
+    def __init__(self, x, y, type_of):
+        super().__init__()
+        if type_of == "lava":
+            self.add(lava)
+        elif type_of == "water":
+            self.add(water)
+        elif type_of == "poison":
+            self.add(poison)
+        self.image = load_image(f"{type_of}-block.png", -1)
+        self.image = pygame.transform.scale(self.image, (24, 24))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        all_sprites.add(self)
+#        self.mask = pygame.mask.from_surface(self.image)
+        self.mask = pygame.mask.Mask(size=(self.rect.x, 1))
+
+    # def update(self):
+    #     if not pygame.sprite.spritecollideany(self, platforms) and \
+    #             not pygame.sprite.spritecollideany(self, bars) and \
+    #             not pygame.sprite.spritecollideany(self, btns):
+    #         self.rect = self.rect.move(0, 200 / fps)
+
 # загрузка уровня
 def load_level():
     name = os.path.join("levels", "test.txt")
@@ -267,6 +300,14 @@ def load_level():
                     Portal(20 + j * 24, 28 + i * 24, "red")
                 elif rows[i][j] == "5":
                     Portal(20 + j * 24, 28 + i * 24, "blue")
+                elif rows[i][j] == "6":
+                    Liquids(20 + j * 24, 28 + i * 24, "water")
+                elif rows[i][j] == "7":
+                    Liquids(20 + j * 24, 28 + i * 24, "lava")
+                elif rows[i][j] == "8":
+                    Liquids(20 + j * 24, 28 + i * 24, "poison")
+
+
         for block_cords in barriers_cords:
             block_bar = []
             for x, y in block_cords:
@@ -284,7 +325,7 @@ def load_level():
 load_level()
 pl2 = Heroes(110, 670, "water")
 pl1 = Heroes(50, 670, "fire")
-box1 = Box(200, 450)
+box1 = Box(300, 210)
 running = True
 fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
 while running:
@@ -336,7 +377,13 @@ while running:
             block = barriers[x]
             for bar in block:
                 bar.up()
-    if pl1.in_portal and pl2.in_portal:
+    if pl1.lose or pl2.lose:
+        screen.fill("black")
+        main_font = pygame.font.SysFont('Segoe Print', 60)
+        lose = main_font.render("Вы проиграли!!", True, "white")
+        screen.blit(lose, (300, 400))
+        pygame.display.flip()
+    elif pl1.in_portal and pl2.in_portal:
         screen.fill("black")
         main_font = pygame.font.SysFont('Segoe Print', 60)
         win = main_font.render("Вы победили!", True, "white")

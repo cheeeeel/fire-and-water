@@ -38,7 +38,7 @@ class Level:
         self.left = 20
         self.top = 28
         self.cell_size = 24
-        self.object = ["stone.png", "barrier.png", "activate_button.png", "portal_red.png", "portal_blue.png"]
+        self.object = ["stone.png", "barrier.png", "activate_button.png", "portal_red.png", "portal_blue.png", "water-block.png", "lava-block.png", "poison-block.png"]
         self.obj_index = 0
         self.counter = 0
         self.flag_end = False
@@ -49,6 +49,9 @@ class Level:
         self.btn = pygame.transform.scale(load_image("activate_button.png", -1), (48, 24))
         self.red_portal = pygame.transform.scale(load_image("portal_red.png", -1), (48, 72))
         self.blue_portal = pygame.transform.scale(load_image("portal_blue.png", -1), (48, 72))
+        self.water_block = pygame.transform.scale(load_image("water-block.png", -1), (24, 24))
+        self.lava_block = pygame.transform.scale(load_image("lava-block.png", -1), (24, 24))
+        self.poison_block = pygame.transform.scale(load_image("poison-block.png", -1), (24, 24))
         self.floor()
 
     # настройка внешнего вида
@@ -115,6 +118,12 @@ class Level:
                     screen.blit(self.red_portal, (x * 24 + 20, y * 24 + 28))
                 elif self.board[x][y] == 5:
                     screen.blit(self.blue_portal, (x * 24 + 20, y * 24 + 28))
+                elif self.board[x][y] == 6:
+                    screen.blit(self.water_block, (x * 24 + 20, y * 24 + 28))
+                elif self.board[x][y] == 7:
+                    screen.blit(self.lava_block, (x * 24 + 20, y * 24 + 28))
+                elif self.board[x][y] == 8:
+                    screen.blit(self.poison_block, (x * 24 + 20, y * 24 + 28))
 
         for y in range(self.height):
             for x in range(self.width):
@@ -125,7 +134,7 @@ class Level:
         self.change_object = self.main_font.render('Сменить объект', True, self.change_object_color)
         self.clear_map = self.main_font.render('Очистить карту', True, self.clear_map_color)
         self.save_map = self.main_font.render('Сохранить карту', True, self.save_map_color)
-        self.edit_map = self.main_font.render("Редактировать text.txt", True, self.edit_map_color)
+        self.edit_map = self.main_font.render("Редактировать test.txt", True, self.edit_map_color)
         screen.blit(self.edit_map, (10, -15))
         screen.blit(self.change_object, (30, 780))
         screen.blit(self.current_object, (280, 790))
