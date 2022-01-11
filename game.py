@@ -131,11 +131,14 @@ class Heroes(pygame.sprite.Sprite):
 
 # платформа(составляет стены, пол уровня, остальные препятствия)
 class Platform(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, flag=False):
         super().__init__(all_sprites)
         self.add(platforms)
         self.image = load_image("stone.png")
-        self.image = pygame.transform.scale(self.image, (24, 24))
+        if flag:
+            self.image = pygame.transform.scale(self.image, (24, 12))
+        else:
+            self.image = pygame.transform.scale(self.image, (24, 24))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -222,7 +225,7 @@ class Button(pygame.sprite.Sprite):
         super().__init__()
         self.add(btns)
         self.image = load_image("activate_button.png", -1)
-        self.image = pygame.transform.scale(self.image, (48, 24))
+        self.image = pygame.transform.scale(self.image, (48, 12))
         self.rect = self.image.get_rect()
         self.start_rect = y
         self.rect.x = x
@@ -280,6 +283,7 @@ class Liquids(pygame.sprite.Sprite):
     #             not pygame.sprite.spritecollideany(self, btns):
     #         self.rect = self.rect.move(0, 200 / fps)
 
+
 # загрузка уровня
 def load_level():
     name = os.path.join("levels", "test.txt")
@@ -296,6 +300,9 @@ def load_level():
             for j in range(len(rows[i])):
                 if rows[i][j] == "1":
                     Platform(20 + j * 24, 28 + i * 24)
+                elif rows[i][j] == '3':
+                    Platform(20 + j * 24, 40 + i * 24, True)
+                    Platform(20 + (j + 1) * 24, 40 + i * 24, True)
                 elif rows[i][j] == "4":
                     Portal(20 + j * 24, 28 + i * 24, "red")
                 elif rows[i][j] == "5":
@@ -306,8 +313,6 @@ def load_level():
                     Liquids(20 + j * 24, 28 + i * 24, "lava")
                 elif rows[i][j] == "8":
                     Liquids(20 + j * 24, 28 + i * 24, "poison")
-
-
         for block_cords in barriers_cords:
             block_bar = []
             for x, y in block_cords:
@@ -370,13 +375,24 @@ while running:
     if pl1.on_button or pl2.on_button or box1.on_button:
         ind = []
         for i in [pl1, pl2, box1]:
-            if i.index[0] != -100:
+            if i.index[0] != -100 and i.index not in ind:
                 ind.append(i.index)
         for x, y in ind:
             buttons[x][y].down()
             block = barriers[x]
             for bar in block:
                 bar.up()
+        for x in range(len(buttons)):
+            for y in range(len(buttons[x])):
+                if (x, y) not in ind:
+                    buttons[x][y].up()
+    if not (pl1.on_button or pl2.on_button or box1.on_button):
+        for block in buttons:
+            for btn in block:
+                btn.up()
+        for block in barriers:
+            for bar in block:
+                bar.down()
     if pl1.lose or pl2.lose:
         screen.fill("black")
         main_font = pygame.font.SysFont('Segoe Print', 60)
@@ -390,13 +406,6 @@ while running:
         screen.blit(win, (300, 400))
         pygame.display.flip()
     else:
-        if not (pl1.on_button or pl2.on_button or box1.on_button):
-            for block in buttons:
-                for btn in block:
-                    btn.up()
-            for block in barriers:
-                for bar in block:
-                    bar.down()
         screen.blit(fon, (44, 52))
         all_sprites.update()
         all_sprites.draw(screen)

@@ -46,7 +46,7 @@ class Level:
         self.board = [[0 for _ in range(height)] for _ in range(width)]
         self.stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
         self.bar = pygame.transform.scale(load_image("barrier.png"), (24, 24))
-        self.btn = pygame.transform.scale(load_image("activate_button.png", -1), (48, 24))
+        self.btn = pygame.transform.scale(load_image("activate_button.png", -1), (48, 12))
         self.red_portal = pygame.transform.scale(load_image("portal_red.png", -1), (48, 72))
         self.blue_portal = pygame.transform.scale(load_image("portal_blue.png", -1), (48, 72))
         self.water_block = pygame.transform.scale(load_image("water-block.png", -1), (24, 24))
@@ -113,6 +113,8 @@ class Level:
                 elif self.board[x][y] == 2:
                     screen.blit(self.bar, (x * 24 + 20, y * 24 + 28))
                 elif self.board[x][y] == 3:
+                    screen.blit(self.stone, (x * 24 + 20, y * 24 + 28))
+                    screen.blit(self.stone, ((x + 1) * 24 + 20, y * 24 + 28))
                     screen.blit(self.btn, (x * 24 + 20, y * 24 + 28))
                 elif self.board[x][y] == 4:
                     screen.blit(self.red_portal, (x * 24 + 20, y * 24 + 28))
