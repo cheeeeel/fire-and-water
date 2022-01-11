@@ -49,9 +49,9 @@ class Level:
         self.btn = pygame.transform.scale(load_image("activate_button.png", -1), (48, 12))
         self.red_portal = pygame.transform.scale(load_image("portal_red.png", -1), (48, 72))
         self.blue_portal = pygame.transform.scale(load_image("portal_blue.png", -1), (48, 72))
-        self.water_block = pygame.transform.scale(load_image("water-block.png", -1), (24, 24))
-        self.lava_block = pygame.transform.scale(load_image("lava-block.png", -1), (24, 24))
-        self.poison_block = pygame.transform.scale(load_image("poison-block.png", -1), (24, 24))
+        self.water_block = pygame.transform.scale(load_image("water-block.png", -1), (24, 12))
+        self.lava_block = pygame.transform.scale(load_image("lava-block.png", -1), (24, 12))
+        self.poison_block = pygame.transform.scale(load_image("poison-block.png", -1), (24, 12))
         self.floor()
 
     # настройка внешнего вида
@@ -120,12 +120,14 @@ class Level:
                     screen.blit(self.red_portal, (x * 24 + 20, y * 24 + 28))
                 elif self.board[x][y] == 5:
                     screen.blit(self.blue_portal, (x * 24 + 20, y * 24 + 28))
-                elif self.board[x][y] == 6:
-                    screen.blit(self.water_block, (x * 24 + 20, y * 24 + 28))
-                elif self.board[x][y] == 7:
-                    screen.blit(self.lava_block, (x * 24 + 20, y * 24 + 28))
-                elif self.board[x][y] == 8:
-                    screen.blit(self.poison_block, (x * 24 + 20, y * 24 + 28))
+                if self.board[x][y] in [6, 7, 8]:
+                    screen.blit(self.stone, (x * 24 + 20, y * 24 + 28))
+                    if self.board[x][y] == 6:
+                        screen.blit(self.water_block, (x * 24 + 20, y * 24 + 28))
+                    elif self.board[x][y] == 7:
+                        screen.blit(self.lava_block, (x * 24 + 20, y * 24 + 28))
+                    elif self.board[x][y] == 8:
+                        screen.blit(self.poison_block, (x * 24 + 20, y * 24 + 28))
 
         for y in range(self.height):
             for x in range(self.width):

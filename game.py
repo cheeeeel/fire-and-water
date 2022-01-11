@@ -123,7 +123,7 @@ class Heroes(pygame.sprite.Sprite):
     def jump(self):
         self.rect = self.rect.move(0, -5)
         if not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(0, -400 / fps)
+            self.rect = self.rect.move(0, -300 / fps)
         else:
             self.jump_flag = False
         self.rect = self.rect.move(0, 5)
@@ -269,7 +269,7 @@ class Liquids(pygame.sprite.Sprite):
         elif type_of == "poison":
             self.add(poison)
         self.image = load_image(f"{type_of}-block.png", -1)
-        self.image = pygame.transform.scale(self.image, (24, 24))
+        self.image = pygame.transform.scale(self.image, (24, 12))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -300,19 +300,20 @@ def load_level():
             for j in range(len(rows[i])):
                 if rows[i][j] == "1":
                     Platform(20 + j * 24, 28 + i * 24)
-                elif rows[i][j] == '3':
-                    Platform(20 + j * 24, 40 + i * 24, True)
-                    Platform(20 + (j + 1) * 24, 40 + i * 24, True)
                 elif rows[i][j] == "4":
                     Portal(20 + j * 24, 28 + i * 24, "red")
                 elif rows[i][j] == "5":
                     Portal(20 + j * 24, 28 + i * 24, "blue")
-                elif rows[i][j] == "6":
-                    Liquids(20 + j * 24, 28 + i * 24, "water")
-                elif rows[i][j] == "7":
-                    Liquids(20 + j * 24, 28 + i * 24, "lava")
-                elif rows[i][j] == "8":
-                    Liquids(20 + j * 24, 28 + i * 24, "poison")
+                if rows[i][j] in ['3', '6', '7', '8']:
+                    Platform(20 + j * 24, 40 + i * 24, True)
+                    if rows[i][j] == '3':
+                        Platform(20 + (j + 1) * 24, 40 + i * 24, True)
+                    elif rows[i][j] == "6":
+                        Liquids(20 + j * 24, 28 + i * 24, "water")
+                    elif rows[i][j] == "7":
+                        Liquids(20 + j * 24, 28 + i * 24, "lava")
+                    elif rows[i][j] == "8":
+                        Liquids(20 + j * 24, 28 + i * 24, "poison")
         for block_cords in barriers_cords:
             block_bar = []
             for x, y in block_cords:
