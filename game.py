@@ -71,18 +71,20 @@ class Heroes(pygame.sprite.Sprite):
         self.in_portal = False
         self.on_button = False
         self.lose = False
+        self.under_bar = False
         self.index = (-100, -100)
 
     # гравитация
     def update(self):
         if not pygame.sprite.spritecollideany(self, platforms) \
                 and not pygame.sprite.spritecollideany(self, boxes) and not \
-                pygame.sprite.spritecollideany(self, bars) and not pygame.sprite.spritecollideany(self, btns):
+                pygame.sprite.spritecollideany(self, bars) and not pygame.sprite.spritecollideany(self, btns) \
+                and not self.under_bar:
             self.rect = self.rect.move(0, 200 / fps)
         for block in barriers:
             for bar in block:
                 if bar.up_flag and not not pygame.sprite.spritecollideany(self, bars) and \
-                        (pl1.on_button or pl2.on_button or box1.on_button):
+                        (pl1.on_button or pl2.on_button or box1.on_button) and not self.under_bar:
                     self.rect = self.rect.move(0, - 120 / fps)
                     break
         if self.hero == "fire" and pygame.sprite.spritecollideany(self, red_portal) or \
@@ -180,14 +182,16 @@ class Box(pygame.sprite.Sprite):
     def right(self):
         self.rect = self.rect.move(1, -5)
         if not pygame.sprite.spritecollideany(self, platforms):
-            if pygame.sprite.spritecollideany(self, heroes):
+            if pygame.sprite.spritecollideany(self, heroes) \
+                    and any([self.rect.y < pl.rect.y + 45 < self.rect.y + 35 for pl in [pl1, pl2]]):
                 self.rect = self.rect.move(200 / fps, 0)
         self.rect = self.rect.move(-1, 5)
 
     def left(self):
         self.rect = self.rect.move(-1, -5)
         if not pygame.sprite.spritecollideany(self, platforms):
-            if pygame.sprite.spritecollideany(self, heroes):
+            if pygame.sprite.spritecollideany(self, heroes) \
+                    and any([self.rect.y < pl.rect.y + 45 < self.rect.y + 35 for pl in [pl1, pl2]]):
                 self.rect = self.rect.move(-(200 / fps), 0)
         self.rect = self.rect.move(1, 5)
 
@@ -274,7 +278,7 @@ class Liquids(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
         all_sprites.add(self)
-#        self.mask = pygame.mask.from_surface(self.image)
+        # self.mask = pygame.mask.from_surface(self.image)
         self.mask = pygame.mask.Mask(size=(self.rect.x, 1))
 
     # def update(self):
@@ -286,7 +290,7 @@ class Liquids(pygame.sprite.Sprite):
 
 # загрузка уровня
 def load_level():
-    name = os.path.join("levels", "test.txt")
+    name = os.path.join("levels", '1.txt')
     with open(name) as f:
         rows = f.readlines()
         for row in rows[rows.index('\n') + 1:]:
@@ -369,9 +373,9 @@ while running:
     if keys[pygame.K_LEFT]:
         pl2.left()
         box1.left()
-    if pl1.jump_flag:
+    if pl1.jump_flag and not pl1.under_bar:
         pl1.jump()
-    if pl2.jump_flag:
+    if pl2.jump_flag and not pl2.under_bar:
         pl2.jump()
     if pl1.on_button or pl2.on_button or box1.on_button:
         ind = []
@@ -387,13 +391,28 @@ while running:
             for y in range(len(buttons[x])):
                 if (x, y) not in ind:
                     buttons[x][y].up()
-    if not (pl1.on_button or pl2.on_button or box1.on_button):
+        for x in range(len(barriers)):
+            if x not in [j[0] for j in ind]:
+                for bar in barriers[x]:
+                    bar.down()
+    else:
         for block in buttons:
             for btn in block:
                 btn.up()
         for block in barriers:
             for bar in block:
-                bar.down()
+                if pygame.sprite.collide_mask(bar, pl1):
+                    pl1.under_bar = True
+                    break
+                elif pygame.sprite.collide_mask(bar, pl2):
+                    pl2.under_bar = True
+                    break
+                else:
+                    pl1.under_bar, pl2.under_bar = False, False
+        if not (pl1.under_bar or pl2.under_bar):
+            for block in barriers:
+                for bar in block:
+                    bar.down()
     if pl1.lose or pl2.lose:
         screen.fill("black")
         main_font = pygame.font.SysFont('Segoe Print', 60)
