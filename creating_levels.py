@@ -1,9 +1,19 @@
 import pygame
 import os
-
+import tkinter.filedialog
 barriers = {}
 buttons = {}
 keys_for_btns = {}
+
+
+def prompt_file():
+    top = tkinter.Tk()
+    top.withdraw()  # hide window
+    file_name = tkinter.filedialog.askopenfilename(parent=top, filetypes=(("text files", "*.txt"), ),
+                                                   title="Выберите уровень",
+                                                   initialdir="levels/", multiple=False)
+    top.destroy()
+    return file_name
 
 
 def load_image(s, key=None):
@@ -52,6 +62,7 @@ class Level:
         self.water_block = pygame.transform.scale(load_image("water-block.png", -1), (24, 12))
         self.lava_block = pygame.transform.scale(load_image("lava-block.png", -1), (24, 12))
         self.poison_block = pygame.transform.scale(load_image("poison-block.png", -1), (24, 12))
+        self.current_file = "1.txt"
         self.floor()
 
     # настройка внешнего вида
@@ -64,21 +75,29 @@ class Level:
         return load_image(self.object[index], -1)
 
     def edit_board(self):
-        name = os.path.join("levels", "test.txt")
-        with open(name) as f:
-            text = f.read().split("\n")
-            for y in range(len(text[:text.index('')])):
-                row = list(text[y])
-                for x in range(len(row)):
-                    self.board[x][y] = int(row[x])
-            for row in text[text.index('') + 1:-1]:
-                self.counter += 1
-                block_bar = [tuple(map(int, k.split(', ')))
-                             for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
-                block_btn = [tuple(map(int, k.split(', ')))
-                             for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')]
-                barriers[self.counter] = block_bar
-                buttons[self.counter] = block_btn
+        try:
+            name = prompt_file()
+            self.current_file = name.split("/")[-1]
+            with open(name) as f:
+                text = f.read().split("\n")
+                for y in range(len(text[:text.index('')])):
+                    row = list(text[y])
+                    for x in range(len(row)):
+                        self.board[x][y] = int(row[x])
+                for row in text[text.index('') + 1:-1]:
+                    self.counter += 1
+                    block_bar = [tuple(map(int, k.split(', ')))
+                                 for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
+                    block_btn = [tuple(map(int, k.split(', ')))
+                                 for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')]
+                    barriers[self.counter] = block_bar
+                    buttons[self.counter] = block_btn
+        except FileNotFoundError:
+            pass
+        except ValueError:
+            pass
+        except UnicodeDecodeError:
+            pass
 
     def default_color(self):
         self.clear_map_color = "white"
@@ -138,7 +157,7 @@ class Level:
         self.change_object = self.main_font.render('Сменить объект', True, self.change_object_color)
         self.clear_map = self.main_font.render('Очистить карту', True, self.clear_map_color)
         self.save_map = self.main_font.render('Сохранить карту', True, self.save_map_color)
-        self.edit_map = self.main_font.render("Редактировать test.txt", True, self.edit_map_color)
+        self.edit_map = self.main_font.render("Редактировать уровень", True, self.edit_map_color)
         screen.blit(self.edit_map, (10, -15))
         screen.blit(self.change_object, (30, 780))
         screen.blit(self.current_object, (280, 790))
@@ -165,7 +184,7 @@ class Level:
                 if self.obj_index == 2:
                     self.obj_index += 1
             elif 730 < mouse_pos[0] < 730 + self.save_map.get_width():
-                self.save("test.txt")
+                self.save()
         elif 0 < mouse_pos[1] < self.edit_map.get_height() - 15:
             if 10 < mouse_pos[0] < self.edit_map.get_width():
                 self.edit_board()
@@ -187,14 +206,14 @@ class Level:
         buttons.clear()
         keys_for_btns.clear()
 
-    def save(self, file_name):
+    def save(self):
         field = []
         for y in range(self.height):
             row = ""
             for x in range(self.width):
                 row += str(self.board[x][y])
             field.append(row)
-        name = os.path.join("levels", file_name)
+        name = os.path.join("levels", self.current_file)
         with open(name, "w+", newline='\n') as f:
             for row in field:
                 f.write(row + '\n')
@@ -406,7 +425,7 @@ while running:
                 level.get_click(event.pos)
         if event.type == pygame.MOUSEMOTION:
             level.set_color(event.pos)
-    screen.fill("black")
+    screen.fill("light blue")
     level.render(screen)
     pygame.display.flip()
 
