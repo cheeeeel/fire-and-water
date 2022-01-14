@@ -333,6 +333,40 @@ class Game:
         # self.pl1 = Heroes(50, 670, "fire")
         # self.box1 = Box(300, 210)
 
+    def pause(self):
+        new_screen = pygame.display.set_mode((1000, 500))
+        new_screen.fill("black")
+        run = True
+        s_c_retry, s_c_play, s_c_exit = False, False, False
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEMOTION:
+                    x, y = event.pos
+                    if 100 <= x <= 300 and 150 <= y <= 350:
+                        s_c_exit = True
+                    else:
+                        s_c_exit = False
+                    if 400 <= x <= 600 and 150 <= y <= 350:
+                        s_c_play = True
+                    else:
+                        s_c_play = False
+                    if 700 <= x <= 900 and 150 <= y <= 350:
+                        s_c_retry = True
+                    else:
+                        s_c_retry = False
+            btn_exit = load_image('exit_mouse.png' if s_c_exit else 'exit.png', -1)
+            btn_exit = pygame.transform.scale(btn_exit, (200, 200))
+            screen.blit(btn_exit, (100, 150))
+            btn_play = load_image('play_mouse.png' if s_c_play else 'play.png', -1)
+            btn_play = pygame.transform.scale(btn_play, (200, 200))
+            screen.blit(btn_play, (400, 150))
+            btn_retry = load_image('retry_mouse.png' if s_c_retry else 'retry.png', -1)
+            btn_retry = pygame.transform.scale(btn_retry, (200, 200))
+            screen.blit(btn_retry, (700, 150))
+            pygame.display.flip()
+
     def load_level(self):
         with open(self.name) as f:
             rows = f.readlines()
@@ -394,6 +428,11 @@ class Game:
                         set_pause = True
                     else:
                         set_pause = False
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 \
+                        and 930 <= event.pos[0] <= 990 and 10 <= event.pos[1] <= 70:
+                    self.pause()
+                    pygame.display.set_mode((1000, 840))
+                    screen.blit(level_text, (20, 10))
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         pygame.time.set_timer(water_jumping_start, 650)
