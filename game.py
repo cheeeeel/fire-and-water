@@ -182,16 +182,20 @@ class Box(pygame.sprite.Sprite):
     def right(self):
         self.rect = self.rect.move(1, -5)
         if not pygame.sprite.spritecollideany(self, platforms):
-            if pygame.sprite.spritecollideany(self, heroes) \
-                    and any([self.rect.y < pl.rect.y + 45 < self.rect.y + 35 for pl in [pl1, pl2]]):
+            if (pygame.sprite.collide_mask(self, pl1) and
+                self.rect.y < pl1.rect.y + 45 < self.rect.y + 35) \
+                    or (pygame.sprite.collide_mask(self, pl2)
+                        and self.rect.y < pl2.rect.y + 45 < self.rect.y + 35):
                 self.rect = self.rect.move(200 / fps, 0)
         self.rect = self.rect.move(-1, 5)
 
     def left(self):
         self.rect = self.rect.move(-1, -5)
         if not pygame.sprite.spritecollideany(self, platforms):
-            if pygame.sprite.spritecollideany(self, heroes) \
-                    and any([self.rect.y < pl.rect.y + 45 < self.rect.y + 35 for pl in [pl1, pl2]]):
+            if (pygame.sprite.collide_mask(self, pl1) and
+                self.rect.y < pl1.rect.y + 45 < self.rect.y + 35) \
+                    or (pygame.sprite.collide_mask(self, pl2)
+                        and self.rect.y < pl2.rect.y + 45 < self.rect.y + 35):
                 self.rect = self.rect.move(-(200 / fps), 0)
         self.rect = self.rect.move(1, 5)
 
