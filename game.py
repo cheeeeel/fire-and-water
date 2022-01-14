@@ -1,10 +1,34 @@
 import pygame
 import os
+import tkinter.filedialog
 
 barriers_cords = []
 buttons_cords = []
 barriers = []
 buttons = []
+
+pygame.init()
+size = 1000, 800
+screen = pygame.display.set_mode(size)
+pygame.display.set_caption("@godofnatural")
+screen.fill("black")
+clock = pygame.time.Clock()
+fps = 60
+
+all_sprites = pygame.sprite.Group()
+platforms = pygame.sprite.Group()
+heroes = pygame.sprite.Group()
+boxes = pygame.sprite.Group()
+btns = pygame.sprite.Group()
+bars = pygame.sprite.Group()
+red_portal = pygame.sprite.Group()
+blue_portal = pygame.sprite.Group()
+water = pygame.sprite.Group()
+lava = pygame.sprite.Group()
+poison = pygame.sprite.Group()
+
+water_jumping_start = pygame.USEREVENT + 1
+fire_jumping_start = pygame.USEREVENT + 2
 
 
 # загрузка фото
@@ -29,27 +53,18 @@ def load_image(s, key=None):
     return image
 
 
-pygame.init()
-size = 1000, 800
-screen = pygame.display.set_mode(size)
-pygame.display.set_caption("@godofnatural")
-screen.fill("black")
-clock = pygame.time.Clock()
-fps = 60
-all_sprites = pygame.sprite.Group()
-platforms = pygame.sprite.Group()
-heroes = pygame.sprite.Group()
-boxes = pygame.sprite.Group()
-btns = pygame.sprite.Group()
-bars = pygame.sprite.Group()
-red_portal = pygame.sprite.Group()
-blue_portal = pygame.sprite.Group()
-water = pygame.sprite.Group()
-lava = pygame.sprite.Group()
-poison = pygame.sprite.Group()
+#global pl
+PL = load_image("stone.png")
 
-water_jumping_start = pygame.USEREVENT + 1
-fire_jumping_start = pygame.USEREVENT + 2
+
+def prompt_file():
+    top = tkinter.Tk()
+    top.withdraw()  # hide window
+    file_name = tkinter.filedialog.askopenfilename(parent=top, filetypes=(("text files", "*.txt"), ),
+                                                   title="Выберите уровень",
+                                                   initialdir="levels/", multiple=False)
+    top.destroy()
+    return file_name
 
 
 # персонажы
@@ -136,7 +151,7 @@ class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, flag=False):
         super().__init__(all_sprites)
         self.add(platforms)
-        self.image = load_image("stone.png")
+        self.image = PL
         if flag:
             self.image = pygame.transform.scale(self.image, (24, 12))
         else:
@@ -293,50 +308,86 @@ class Liquids(pygame.sprite.Sprite):
 
 
 # загрузка уровня
-def load_level():
-    name = os.path.join("levels", '1.txt')
-    with open(name) as f:
-        rows = f.readlines()
-        for row in rows[rows.index('\n') + 1:]:
-            block_bar = [tuple(map(int, k.split(', ')))
-                         for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
-            block_btn = [tuple(map(int, k.split(', ')))
-                         for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')]
-            barriers_cords.append(block_bar)
-            buttons_cords.append(block_btn)
-        for i in range(len(rows[:rows.index('\n')])):
-            for j in range(len(rows[i])):
-                if rows[i][j] == "1":
-                    Platform(20 + j * 24, 28 + i * 24)
-                elif rows[i][j] == "4":
-                    Portal(20 + j * 24, 28 + i * 24, "red")
-                elif rows[i][j] == "5":
-                    Portal(20 + j * 24, 28 + i * 24, "blue")
-                if rows[i][j] in ['3', '6', '7', '8']:
-                    Platform(20 + j * 24, 40 + i * 24, True)
-                    if rows[i][j] == '3':
-                        Platform(20 + (j + 1) * 24, 40 + i * 24, True)
-                    elif rows[i][j] == "6":
-                        Liquids(20 + j * 24, 28 + i * 24, "water")
-                    elif rows[i][j] == "7":
-                        Liquids(20 + j * 24, 28 + i * 24, "lava")
-                    elif rows[i][j] == "8":
-                        Liquids(20 + j * 24, 28 + i * 24, "poison")
-        for block_cords in barriers_cords:
-            block_bar = []
-            for x, y in block_cords:
-                bar = Barrier(20 + x * 24, 28 + y * 24)
-                block_bar.append(bar)
-            barriers.append(block_bar)
-        for block_cords in buttons_cords:
-            block_btn = []
-            for x, y in block_cords:
-                btn = Button(20 + x * 24, 28 + y * 24)
-                block_btn.append(btn)
-            buttons.append(block_btn)
+class Game:
+    def __init__(self, name):
+        self.name = name
+
+    def load_level(self):
+        with open(self.name) as f:
+            rows = f.readlines()
+            for row in rows[rows.index('\n') + 1:]:
+                if len(row) > 3:
+                    block_bar = [tuple(map(int, k.split(', ')))
+                                 for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
+                    block_btn = [tuple(map(int, k.split(', ')))
+                                 for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')]
+                    barriers_cords.append(block_bar)
+                    buttons_cords.append(block_btn)
+            for i in range(len(rows[:rows.index('\n')])):
+                for j in range(len(rows[i])):
+                    if rows[i][j] == "1":
+                        Platform(20 + j * 24, 28 + i * 24)
+                    elif rows[i][j] == "4":
+                        Portal(20 + j * 24, 28 + i * 24, "red")
+                    elif rows[i][j] == "5":
+                        Portal(20 + j * 24, 28 + i * 24, "blue")
+                    if rows[i][j] in ['3', '6', '7', '8']:
+                        Platform(20 + j * 24, 40 + i * 24, True)
+                        if rows[i][j] == '3':
+                            Platform(20 + (j + 1) * 24, 40 + i * 24, True)
+                        elif rows[i][j] == "6":
+                            Liquids(20 + j * 24, 28 + i * 24, "water")
+                        elif rows[i][j] == "7":
+                            Liquids(20 + j * 24, 28 + i * 24, "lava")
+                        elif rows[i][j] == "8":
+                            Liquids(20 + j * 24, 28 + i * 24, "poison")
+            for block_cords in barriers_cords:
+                block_bar = []
+                for x, y in block_cords:
+                    bar = Barrier(20 + x * 24, 28 + y * 24)
+                    block_bar.append(bar)
+                barriers.append(block_bar)
+            for block_cords in buttons_cords:
+                block_btn = []
+                for x, y in block_cords:
+                    btn = Button(20 + x * 24, 28 + y * 24)
+                    block_btn.append(btn)
+                buttons.append(block_btn)
 
 
-load_level()
+class SelectLevel:
+    def first_select(self):
+        size = 1000, 840
+        screen = pygame.display.set_mode(size)
+        screen.fill("black")
+        main_font = pygame.font.SysFont('Segoe Print', 60)
+
+        plot = main_font.render('Сюжетные уровни', True, "white")
+        plot_rect = plot.get_rect()
+        plot_rect.x = 100
+        plot_rect.y = 100
+
+        user_levels = main_font.render('Пользовательские уровни', True, "white")
+        user_levels_rect = user_levels.get_rect()
+        user_levels_rect.x = 100
+        user_levels_rect.y = 500
+
+        screen.blit(plot, (100, 100))
+        screen.blit(user_levels, (100, 500))
+        run = True
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1 and plot_rect.collidepoint(event.pos):
+                        return os.path.join("main_levels", "1.txt")
+                    elif event.button == 1 and user_levels_rect.collidepoint(event.pos):
+                        return prompt_file()
+            pygame.display.flip()
+
+
+Game(SelectLevel().first_select()).load_level()
 pl2 = Heroes(110, 670, "water")
 pl1 = Heroes(50, 670, "fire")
 box1 = Box(300, 210)

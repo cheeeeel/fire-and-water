@@ -48,7 +48,9 @@ class Level:
         self.left = 20
         self.top = 28
         self.cell_size = 24
-        self.object = ["stone.png", "barrier.png", "activate_button.png", "portal_red.png", "portal_blue.png", "water-block.png", "lava-block.png", "poison-block.png"]
+        self.object = ["stone.png", "barrier.png", "activate_button.png",
+                       "portal_red.png", "portal_blue.png", "water-block.png",
+                       "lava-block.png", "poison-block.png"]
         self.obj_index = 0
         self.counter = 0
         self.flag_end = False
@@ -62,7 +64,7 @@ class Level:
         self.water_block = pygame.transform.scale(load_image("water-block.png", -1), (24, 12))
         self.lava_block = pygame.transform.scale(load_image("lava-block.png", -1), (24, 12))
         self.poison_block = pygame.transform.scale(load_image("poison-block.png", -1), (24, 12))
-        self.current_file = "1.txt"
+        self.current_file = ""
         self.floor()
 
     # настройка внешнего вида
@@ -77,21 +79,22 @@ class Level:
     def edit_board(self):
         try:
             name = prompt_file()
-            self.current_file = name.split("/")[-1]
-            with open(name) as f:
-                text = f.read().split("\n")
-                for y in range(len(text[:text.index('')])):
-                    row = list(text[y])
-                    for x in range(len(row)):
-                        self.board[x][y] = int(row[x])
-                for row in text[text.index('') + 1:-1]:
-                    self.counter += 1
-                    block_bar = [tuple(map(int, k.split(', ')))
-                                 for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
-                    block_btn = [tuple(map(int, k.split(', ')))
-                                 for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')]
-                    barriers[self.counter] = block_bar
-                    buttons[self.counter] = block_btn
+            if name:
+                self.current_file = name.split("/")[-1]
+                with open(name) as f:
+                    text = f.read().split("\n")
+                    for y in range(len(text[:text.index('')])):
+                        row = list(text[y])
+                        for x in range(len(row)):
+                            self.board[x][y] = int(row[x])
+                    for row in text[text.index('') + 1:-1]:
+                        self.counter += 1
+                        block_bar = [tuple(map(int, k.split(', ')))
+                                     for k in row.split('; ')[0].replace('\n', '')[2:-2].split('), (')]
+                        block_btn = [tuple(map(int, k.split(', ')))
+                                     for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')]
+                        barriers[self.counter] = block_bar
+                        buttons[self.counter] = block_btn
         except FileNotFoundError:
             pass
         except ValueError:
@@ -213,13 +216,17 @@ class Level:
             for x in range(self.width):
                 row += str(self.board[x][y])
             field.append(row)
-        name = os.path.join("levels", self.current_file)
-        with open(name, "w+", newline='\n') as f:
-            for row in field:
-                f.write(row + '\n')
-            f.write('\n')
-            for m in list(barriers.keys()):
-                f.write(f'{barriers[m]}; {buttons[m]}\n')
+        if not self.current_file:
+            name = prompt_file()
+        else:
+            name = os.path.join("levels", self.current_file)
+        if name:
+            with open(name, "w+", newline='\n') as f:
+                for row in field:
+                    f.write(row + '\n')
+                f.write('\n')
+                for m in list(barriers.keys()):
+                    f.write(f'{barriers[m]}; {buttons[m]}\n')
 
     # обновляет значение ячейки на поле
     def on_click(self, cell_coords, key_for_bar=None):
@@ -404,29 +411,29 @@ class Level:
                 buttons[cnt] = [(x, y)]
 
 
-pygame.init()
-size = 1000, 840
-screen = pygame.display.set_mode(size)
-level = Level(40, 31)
-level.render(screen)
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if level.cr_btn and event.button == 3:
-                level.flag_end = True
-            if event.button == 1:
-                level.get_click(event.pos, True)
-            elif event.button == 3:
-                level.get_click(event.pos, False)
-            else:
-                level.get_click(event.pos)
-        if event.type == pygame.MOUSEMOTION:
-            level.set_color(event.pos)
-    screen.fill("light blue")
-    level.render(screen)
-    pygame.display.flip()
-
-pygame.quit()
+# pygame.init()
+# size = 1000, 840
+# screen = pygame.display.set_mode(size)
+# level = Level(40, 31)
+# level.render(screen)
+# running = True
+# while running:
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             running = False
+#         if event.type == pygame.MOUSEBUTTONDOWN:
+#             if level.cr_btn and event.button == 3:
+#                 level.flag_end = True
+#             if event.button == 1:
+#                 level.get_click(event.pos, True)
+#             elif event.button == 3:
+#                 level.get_click(event.pos, False)
+#             else:
+#                 level.get_click(event.pos)
+#         if event.type == pygame.MOUSEMOTION:
+#             level.set_color(event.pos)
+#     screen.fill("light blue")
+#     level.render(screen)
+#     pygame.display.flip()
+#
+# pygame.quit()
