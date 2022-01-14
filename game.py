@@ -52,14 +52,14 @@ def load_image(s, key=None):
     return image
 
 
-#global pl
+# global pl
 PL = load_image("stone.png")
 
 
 def prompt_file():
     top = tkinter.Tk()
     top.withdraw()  # hide window
-    file_name = tkinter.filedialog.askopenfilename(parent=top, filetypes=(("text files", "*.txt"), ),
+    file_name = tkinter.filedialog.askopenfilename(parent=top, filetypes=(("text files", "*.txt"),),
                                                    title="Выберите уровень",
                                                    initialdir="levels/", multiple=False)
     top.destroy()
@@ -385,6 +385,8 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                if event.type == pygame.MOUSEMOTION:
+                    pass
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         pygame.time.set_timer(water_jumping_start, 650)
@@ -472,6 +474,9 @@ class Game:
                 screen.blit(fon, (44, 52))
                 all_sprites.update()
                 all_sprites.draw(screen)
+                file = load_image("pause.png", -1)
+                setting_image = pygame.transform.scale(file, (48, 48))
+                screen.blit(setting_image, (898, 62))
                 pygame.display.flip()
                 clock.tick(fps)
 
