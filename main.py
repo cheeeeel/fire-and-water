@@ -140,7 +140,7 @@ class MainMenu:
 
 if __name__ == '__main__':
     pygame.init()
-    size = 1000, 800
+    size = 1000, 840
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('God_of_natural')
     main = MainMenu(*size)
