@@ -1,6 +1,28 @@
 import pygame
 import os
 from creating_levels import Level
+from game import Game, Heroes, Box, SelectLevel
+
+
+def load_image(s, key=None):
+    name = os.path.join("data", s)
+    try:
+        image = pygame.image.load(name).convert()
+    except pygame.error as message:
+        print("error with " + s, message)
+        raise SystemExit(message)
+    if key is not None:
+        if key == -1:
+            key = image.get_at((0, 0))
+            image.set_colorkey(key)
+        elif key == -2:
+            key = image.get_at((0, 0))
+            image.set_colorkey(key)
+            key = image.get_at((949, 0))
+            image.set_colorkey(key)
+    else:
+        image = image.convert_alpha()
+    return image
 
 
 class MainMenu:
@@ -53,7 +75,7 @@ class MainMenu:
     def go_next(self, x, y, width, height):
         if width // 75 <= x <= width // 75 + self.txt_one_pc_btn.get_width() \
                 and height * 0.92 <= y <= height:
-            print("""Один компьютер""")
+            self.start_game()
         elif width // 75 <= x <= width // 75 + self.txt_redactor.get_width() \
                 and height * 0.78 <= y <= height * 0.84:
             self.creating_levels()
@@ -86,6 +108,10 @@ class MainMenu:
 
     def start_game(self):
         print("Пожалуйста запустите game.py")
+        name = SelectLevel().first_select()
+        g = Game(name)
+        g.load_level()
+        g.mainloop()
 
     def creating_levels(self):
         size = 1000, 840

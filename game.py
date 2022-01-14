@@ -26,7 +26,6 @@ blue_portal = pygame.sprite.Group()
 water = pygame.sprite.Group()
 lava = pygame.sprite.Group()
 poison = pygame.sprite.Group()
-
 water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
 
@@ -311,6 +310,28 @@ class Liquids(pygame.sprite.Sprite):
 class Game:
     def __init__(self, name):
         self.name = name
+        self.all_sprites = pygame.sprite.Group()
+        self.platforms = pygame.sprite.Group()
+        self.heroes = pygame.sprite.Group()
+        self.boxes = pygame.sprite.Group()
+        self.btns = pygame.sprite.Group()
+        self.bars = pygame.sprite.Group()
+        self.red_portal = pygame.sprite.Group()
+        self.blue_portal = pygame.sprite.Group()
+        self.water = pygame.sprite.Group()
+        self.lava = pygame.sprite.Group()
+        self.poison = pygame.sprite.Group()
+        self.water_jumping_start = pygame.USEREVENT + 1
+        self.fire_jumping_start = pygame.USEREVENT + 2
+        self.barriers_cords = []
+        self.buttons_cords = []
+        self.barriers = []
+        self.buttons = []
+        self.fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
+        self.PL = load_image("stone.png")
+        # self.pl2 = Heroes(110, 670, "water")
+        # self.pl1 = Heroes(50, 670, "fire")
+        # self.box1 = Box(300, 210)
 
     def load_level(self):
         with open(self.name) as f:
@@ -354,6 +375,106 @@ class Game:
                     block_btn.append(btn)
                 buttons.append(block_btn)
 
+    def mainloop(self):
+        clock = pygame.time.Clock()
+        fps = 60
+        screen.fill("black")
+        running = True
+        fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        pygame.time.set_timer(water_jumping_start, 650)
+                        pl2.jump_flag = True
+                    if event.key == pygame.K_w:
+                        pygame.time.set_timer(fire_jumping_start, 650)
+                        pl1.jump_flag = True
+                if event.type == fire_jumping_start:
+                    if not pl1.jump_flag:
+                        pygame.time.set_timer(fire_jumping_start, 0)
+                    else:
+                        pl1.jump_flag = False
+                if event.type == water_jumping_start:
+                    if not pl2.jump_flag:
+                        pygame.time.set_timer(water_jumping_start, 0)
+                    else:
+                        pl2.jump_flag = False
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_d]:
+                pl1.right()
+                box1.right()
+            if keys[pygame.K_a]:
+                pl1.left()
+                box1.left()
+            if keys[pygame.K_RIGHT]:
+                pl2.right()
+                box1.right()
+            if keys[pygame.K_LEFT]:
+                pl2.left()
+                box1.left()
+            if pl1.jump_flag and not pl1.under_bar:
+                pl1.jump()
+            if pl2.jump_flag and not pl2.under_bar:
+                pl2.jump()
+            if pl1.on_button or pl2.on_button or box1.on_button:
+                ind = []
+                for i in [pl1, pl2, box1]:
+                    if i.index[0] != -100 and i.index not in ind:
+                        ind.append(i.index)
+                for x, y in ind:
+                    buttons[x][y].down()
+                    block = barriers[x]
+                    for bar in block:
+                        bar.up()
+                for x in range(len(buttons)):
+                    for y in range(len(buttons[x])):
+                        if (x, y) not in ind:
+                            buttons[x][y].up()
+                for x in range(len(barriers)):
+                    if x not in [j[0] for j in ind]:
+                        for bar in barriers[x]:
+                            bar.down()
+            else:
+                for block in buttons:
+                    for btn in block:
+                        btn.up()
+                for block in barriers:
+                    for bar in block:
+                        if pygame.sprite.collide_mask(bar, pl1):
+                            pl1.under_bar = True
+                            break
+                        elif pygame.sprite.collide_mask(bar, pl2):
+                            pl2.under_bar = True
+                            break
+                        else:
+                            pl1.under_bar, pl2.under_bar = False, False
+                if not (pl1.under_bar or pl2.under_bar):
+                    for block in barriers:
+                        for bar in block:
+                            bar.down()
+            if pl1.lose or pl2.lose:
+                screen.fill("black")
+                main_font = pygame.font.SysFont('Segoe Print', 60)
+                lose = main_font.render("Вы проиграли!!", True, "white")
+                screen.blit(lose, (300, 400))
+                pygame.display.flip()
+            elif pl1.in_portal and pl2.in_portal:
+                screen.fill("black")
+                main_font = pygame.font.SysFont('Segoe Print', 60)
+                win = main_font.render("Вы победили!", True, "white")
+                screen.blit(win, (300, 400))
+                pygame.display.flip()
+            else:
+                screen.blit(fon, (44, 52))
+                all_sprites.update()
+                all_sprites.draw(screen)
+                pygame.display.flip()
+                clock.tick(fps)
+
 
 class SelectLevel:
     def first_select(self):
@@ -387,102 +508,103 @@ class SelectLevel:
             pygame.display.flip()
 
 
-Game(SelectLevel().first_select()).load_level()
 pl2 = Heroes(110, 670, "water")
 pl1 = Heroes(50, 670, "fire")
 box1 = Box(300, 210)
-running = True
-fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                pygame.time.set_timer(water_jumping_start, 650)
-                pl2.jump_flag = True
-            if event.key == pygame.K_w:
-                pygame.time.set_timer(fire_jumping_start, 650)
-                pl1.jump_flag = True
-        if event.type == fire_jumping_start:
-            if not pl1.jump_flag:
-                pygame.time.set_timer(fire_jumping_start, 0)
-            else:
-                pl1.jump_flag = False
-        if event.type == water_jumping_start:
-            if not pl2.jump_flag:
-                pygame.time.set_timer(water_jumping_start, 0)
-            else:
-                pl2.jump_flag = False
-
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_d]:
-        pl1.right()
-        box1.right()
-    if keys[pygame.K_a]:
-        pl1.left()
-        box1.left()
-    if keys[pygame.K_RIGHT]:
-        pl2.right()
-        box1.right()
-    if keys[pygame.K_LEFT]:
-        pl2.left()
-        box1.left()
-    if pl1.jump_flag and not pl1.under_bar:
-        pl1.jump()
-    if pl2.jump_flag and not pl2.under_bar:
-        pl2.jump()
-    if pl1.on_button or pl2.on_button or box1.on_button:
-        ind = []
-        for i in [pl1, pl2, box1]:
-            if i.index[0] != -100 and i.index not in ind:
-                ind.append(i.index)
-        for x, y in ind:
-            buttons[x][y].down()
-            block = barriers[x]
-            for bar in block:
-                bar.up()
-        for x in range(len(buttons)):
-            for y in range(len(buttons[x])):
-                if (x, y) not in ind:
-                    buttons[x][y].up()
-        for x in range(len(barriers)):
-            if x not in [j[0] for j in ind]:
-                for bar in barriers[x]:
-                    bar.down()
-    else:
-        for block in buttons:
-            for btn in block:
-                btn.up()
-        for block in barriers:
-            for bar in block:
-                if pygame.sprite.collide_mask(bar, pl1):
-                    pl1.under_bar = True
-                    break
-                elif pygame.sprite.collide_mask(bar, pl2):
-                    pl2.under_bar = True
-                    break
-                else:
-                    pl1.under_bar, pl2.under_bar = False, False
-        if not (pl1.under_bar or pl2.under_bar):
-            for block in barriers:
-                for bar in block:
-                    bar.down()
-    if pl1.lose or pl2.lose:
-        screen.fill("black")
-        main_font = pygame.font.SysFont('Segoe Print', 60)
-        lose = main_font.render("Вы проиграли!!", True, "white")
-        screen.blit(lose, (300, 400))
-        pygame.display.flip()
-    elif pl1.in_portal and pl2.in_portal:
-        screen.fill("black")
-        main_font = pygame.font.SysFont('Segoe Print', 60)
-        win = main_font.render("Вы победили!", True, "white")
-        screen.blit(win, (300, 400))
-        pygame.display.flip()
-    else:
-        screen.blit(fon, (44, 52))
-        all_sprites.update()
-        all_sprites.draw(screen)
-        pygame.display.flip()
-        clock.tick(fps)
+#Game(SelectLevel().first_select()).load_level()
+# w
+# running = True
+# fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
+# while running:
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             running = False
+#         if event.type == pygame.KEYDOWN:
+#             if event.key == pygame.K_UP:
+#                 pygame.time.set_timer(water_jumping_start, 650)
+#                 pl2.jump_flag = True
+#             if event.key == pygame.K_w:
+#                 pygame.time.set_timer(fire_jumping_start, 650)
+#                 pl1.jump_flag = True
+#         if event.type == fire_jumping_start:
+#             if not pl1.jump_flag:
+#                 pygame.time.set_timer(fire_jumping_start, 0)
+#             else:
+#                 pl1.jump_flag = False
+#         if event.type == water_jumping_start:
+#             if not pl2.jump_flag:
+#                 pygame.time.set_timer(water_jumping_start, 0)
+#             else:
+#                 pl2.jump_flag = False
+#
+#     keys = pygame.key.get_pressed()
+#     if keys[pygame.K_d]:
+#         pl1.right()
+#         box1.right()
+#     if keys[pygame.K_a]:
+#         pl1.left()
+#         box1.left()
+#     if keys[pygame.K_RIGHT]:
+#         pl2.right()
+#         box1.right()
+#     if keys[pygame.K_LEFT]:
+#         pl2.left()
+#         box1.left()
+#     if pl1.jump_flag and not pl1.under_bar:
+#         pl1.jump()
+#     if pl2.jump_flag and not pl2.under_bar:
+#         pl2.jump()
+#     if pl1.on_button or pl2.on_button or box1.on_button:
+#         ind = []
+#         for i in [pl1, pl2, box1]:
+#             if i.index[0] != -100 and i.index not in ind:
+#                 ind.append(i.index)
+#         for x, y in ind:
+#             buttons[x][y].down()
+#             block = barriers[x]
+#             for bar in block:
+#                 bar.up()
+#         for x in range(len(buttons)):
+#             for y in range(len(buttons[x])):
+#                 if (x, y) not in ind:
+#                     buttons[x][y].up()
+#         for x in range(len(barriers)):
+#             if x not in [j[0] for j in ind]:
+#                 for bar in barriers[x]:
+#                     bar.down()
+#     else:
+#         for block in buttons:
+#             for btn in block:
+#                 btn.up()
+#         for block in barriers:
+#             for bar in block:
+#                 if pygame.sprite.collide_mask(bar, pl1):
+#                     pl1.under_bar = True
+#                     break
+#                 elif pygame.sprite.collide_mask(bar, pl2):
+#                     pl2.under_bar = True
+#                     break
+#                 else:
+#                     pl1.under_bar, pl2.under_bar = False, False
+#         if not (pl1.under_bar or pl2.under_bar):
+#             for block in barriers:
+#                 for bar in block:
+#                     bar.down()
+#     if pl1.lose or pl2.lose:
+#         screen.fill("black")
+#         main_font = pygame.font.SysFont('Segoe Print', 60)
+#         lose = main_font.render("Вы проиграли!!", True, "white")
+#         screen.blit(lose, (300, 400))
+#         pygame.display.flip()
+#     elif pl1.in_portal and pl2.in_portal:
+#         screen.fill("black")
+#         main_font = pygame.font.SysFont('Segoe Print', 60)
+#         win = main_font.render("Вы победили!", True, "white")
+#         screen.blit(win, (300, 400))
+#         pygame.display.flip()
+#     else:
+#         screen.blit(fon, (44, 52))
+#         all_sprites.update()
+#         all_sprites.draw(screen)
+#         pygame.display.flip()
+#         clock.tick(fps)
