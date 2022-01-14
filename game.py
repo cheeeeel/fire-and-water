@@ -113,7 +113,7 @@ class Heroes(pygame.sprite.Sprite):
         for block in buttons_cords:
             for i, j in block:
                 if (i - 1) * 24 <= self.rect.x - 20 <= (i + 1) * 24 and \
-                        j * 24 <= self.rect.y + 52 <= (j + 1) * 24:
+                        j * 24 <= self.rect.y <= (j + 1) * 24:
                     self.on_button = True
                     ind_bl = buttons_cords.index(block)
                     self.index = (ind_bl, buttons_cords[ind_bl].index((i, j)))
@@ -184,7 +184,7 @@ class Box(pygame.sprite.Sprite):
         for block in buttons_cords:
             for x, y in block:
                 if (x - 0.5) * 24 <= self.rect.x - 20 <= (x + 1) * 24 and \
-                        y * 24 <= self.rect.y + 7 <= (y + 1) * 24:
+                        y * 24 <= self.rect.y - 45 <= (y + 1) * 24:
                     self.on_button = True
                     ind_bl = buttons_cords.index(block)
                     self.index = (ind_bl, buttons_cords[ind_bl].index((x, y)))
@@ -347,31 +347,31 @@ class Game:
             for i in range(len(rows[:rows.index('\n')])):
                 for j in range(len(rows[i])):
                     if rows[i][j] == "1":
-                        Platform(20 + j * 24, 28 + i * 24)
+                        Platform(20 + j * 24, 80 + i * 24)
                     elif rows[i][j] == "4":
-                        Portal(20 + j * 24, 28 + i * 24, "red")
+                        Portal(20 + j * 24, 80 + i * 24, "red")
                     elif rows[i][j] == "5":
-                        Portal(20 + j * 24, 28 + i * 24, "blue")
+                        Portal(20 + j * 24, 80 + i * 24, "blue")
                     if rows[i][j] in ['3', '6', '7', '8']:
-                        Platform(20 + j * 24, 40 + i * 24, True)
+                        Platform(20 + j * 24, 92 + i * 24, True)
                         if rows[i][j] == '3':
-                            Platform(20 + (j + 1) * 24, 40 + i * 24, True)
+                            Platform(20 + (j + 1) * 24, 92 + i * 24, True)
                         elif rows[i][j] == "6":
-                            Liquids(20 + j * 24, 28 + i * 24, "water")
+                            Liquids(20 + j * 24, 80 + i * 24, "water")
                         elif rows[i][j] == "7":
-                            Liquids(20 + j * 24, 28 + i * 24, "lava")
+                            Liquids(20 + j * 24, 80 + i * 24, "lava")
                         elif rows[i][j] == "8":
-                            Liquids(20 + j * 24, 28 + i * 24, "poison")
+                            Liquids(20 + j * 24, 80 + i * 24, "poison")
             for block_cords in barriers_cords:
                 block_bar = []
                 for x, y in block_cords:
-                    bar = Barrier(20 + x * 24, 28 + y * 24)
+                    bar = Barrier(20 + x * 24, 80 + y * 24)
                     block_bar.append(bar)
                 barriers.append(block_bar)
             for block_cords in buttons_cords:
                 block_btn = []
                 for x, y in block_cords:
-                    btn = Button(20 + x * 24, 28 + y * 24)
+                    btn = Button(20 + x * 24, 80 + y * 24)
                     block_btn.append(btn)
                 buttons.append(block_btn)
 
@@ -380,13 +380,20 @@ class Game:
         fps = 60
         screen.fill("black")
         running = True
+        set_pause = False
         fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
+        font = pygame.font.SysFont('Segoe Print', 30)
+        level_text = font.render('Уровень 1', True, "white")
+        screen.blit(level_text, (20, 10))
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                 if event.type == pygame.MOUSEMOTION:
-                    pass
+                    if 930 <= event.pos[0] <= 990 and 10 <= event.pos[1] <= 70:
+                        set_pause = True
+                    else:
+                        set_pause = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         pygame.time.set_timer(water_jumping_start, 650)
@@ -461,7 +468,7 @@ class Game:
             if pl1.lose or pl2.lose:
                 screen.fill("black")
                 main_font = pygame.font.SysFont('Segoe Print', 60)
-                lose = main_font.render("Вы проиграли!!", True, "white")
+                lose = main_font.render("Вы проиграли!", True, "white")
                 screen.blit(lose, (300, 400))
                 pygame.display.flip()
             elif pl1.in_portal and pl2.in_portal:
@@ -471,12 +478,12 @@ class Game:
                 screen.blit(win, (300, 400))
                 pygame.display.flip()
             else:
-                screen.blit(fon, (44, 52))
+                screen.blit(fon, (44, 104))
                 all_sprites.update()
                 all_sprites.draw(screen)
-                file = load_image("pause.png", -1)
-                setting_image = pygame.transform.scale(file, (48, 48))
-                screen.blit(setting_image, (898, 62))
+                file = load_image("pause.png" if not set_pause else "pause_mouse.png", -1)
+                setting_image = pygame.transform.scale(file, (60, 60))
+                screen.blit(setting_image, (920, 10))
                 pygame.display.flip()
                 clock.tick(fps)
 
