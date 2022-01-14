@@ -1,7 +1,7 @@
 import pygame
 import os
 from creating_levels import Level
-from game import Game, Heroes, Box, SelectLevel
+from game import Game, SelectLevel
 
 
 def load_image(s, key=None):
@@ -107,7 +107,6 @@ class MainMenu:
         screen.blit(fon, (0, 0))
 
     def start_game(self):
-        print("Пожалуйста запустите game.py")
         name = SelectLevel().first_select()
         g = Game(name)
         g.load_level()

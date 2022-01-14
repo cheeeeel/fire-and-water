@@ -410,30 +410,3 @@ class Level:
             except KeyError:
                 buttons[cnt] = [(x, y)]
 
-
-# pygame.init()
-# size = 1000, 840
-# screen = pygame.display.set_mode(size)
-# level = Level(40, 31)
-# level.render(screen)
-# running = True
-# while running:
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             running = False
-#         if event.type == pygame.MOUSEBUTTONDOWN:
-#             if level.cr_btn and event.button == 3:
-#                 level.flag_end = True
-#             if event.button == 1:
-#                 level.get_click(event.pos, True)
-#             elif event.button == 3:
-#                 level.get_click(event.pos, False)
-#             else:
-#                 level.get_click(event.pos)
-#         if event.type == pygame.MOUSEMOTION:
-#             level.set_color(event.pos)
-#     screen.fill("light blue")
-#     level.render(screen)
-#     pygame.display.flip()
-#
-# pygame.quit()
