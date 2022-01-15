@@ -34,8 +34,8 @@ class MainMenu:
         self.start_screen(width, height)
         self.main_font = pygame.font.SysFont('Segoe Print', round(height // 5 * 0.3))
 
-        file = self.load_image("settings_mouse.png", -1) \
-            if flag_settings else self.load_image("settings.png", -1)
+        file = settings_mouse \
+            if flag_settings else settings
         self.setting_image = pygame.transform.scale(file, (width // 10, height // 8))
         screen.blit(self.setting_image, (width * 0.89, height // 75))
 
@@ -103,7 +103,7 @@ class MainMenu:
             self.make_inscriptions(width, height)
 
     def start_screen(self, width, height):
-        fon = pygame.transform.scale(self.load_image('main_menu_picture.jpg'), (width, height))
+        fon = pygame.transform.scale(background, (width, height))
         screen.blit(fon, (0, 0))
 
     def start_game(self):
@@ -139,6 +139,9 @@ class MainMenu:
 
 
 if __name__ == '__main__':
+    settings_mouse = load_image("settings_mouse.png", -1)
+    settings = load_image("settings.png", -1)
+    background = load_image('main_menu_picture.jpg')
     pygame.init()
     size = 1000, 840
     screen = pygame.display.set_mode(size)

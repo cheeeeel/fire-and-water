@@ -329,6 +329,13 @@ class Game:
         self.buttons = []
         self.fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         self.PL = load_image("stone.png")
+        self.exit_mouse = load_image('exit_mouse.png', -1)
+        self.exit = load_image('exit.png', -1)
+        self.play_mouse = load_image('play_mouse.png', -1)
+        self.play = load_image('play.png', -1)
+        self.retry_mouse = load_image('retry_mouse.png', -1)
+        self.retry = load_image('retry.png', -1)
+
         # self.pl2 = Heroes(110, 670, "water")
         # self.pl1 = Heroes(50, 670, "fire")
         # self.box1 = Box(300, 210)
@@ -356,13 +363,13 @@ class Game:
                         s_c_retry = True
                     else:
                         s_c_retry = False
-            btn_exit = load_image('exit_mouse.png' if s_c_exit else 'exit.png', -1)
+            btn_exit = self.exit_mouse if s_c_exit else self.exit
             btn_exit = pygame.transform.scale(btn_exit, (200, 200))
             screen.blit(btn_exit, (100, 150))
-            btn_play = load_image('play_mouse.png' if s_c_play else 'play.png', -1)
+            btn_play = self.play_mouse if s_c_play else self.play
             btn_play = pygame.transform.scale(btn_play, (200, 200))
             screen.blit(btn_play, (400, 150))
-            btn_retry = load_image('retry_mouse.png' if s_c_retry else 'retry.png', -1)
+            btn_retry = self.retry_mouse if s_c_retry else self.retry
             btn_retry = pygame.transform.scale(btn_retry, (200, 200))
             screen.blit(btn_retry, (700, 150))
             pygame.display.flip()
