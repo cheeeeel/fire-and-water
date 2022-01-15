@@ -34,8 +34,8 @@ class MainMenu:
         self.start_screen(width, height)
         self.main_font = pygame.font.SysFont('Segoe Print', round(height // 5 * 0.3))
 
-        file = settings_mouse \
-            if flag_settings else settings
+        file = sound_on_mouse \
+            if flag_settings else sound_on
         self.setting_image = pygame.transform.scale(file, (width // 10, height // 8))
         screen.blit(self.setting_image, (width * 0.89, height // 75))
 
@@ -133,14 +133,14 @@ class MainMenu:
                         level.get_click(event.pos)
                 if event.type == pygame.MOUSEMOTION:
                     level.set_color(event.pos)
-            screen.fill((30, 144, 255))
+            screen.fill((15, 82, 186))
             level.render(screen)
             pygame.display.flip()
 
 
 if __name__ == '__main__':
-    settings_mouse = load_image("settings_mouse.png", -1)
-    settings = load_image("settings.png", -1)
+    sound_on_mouse = load_image("music_on_mouse.png", -1)
+    sound_on = load_image("music_on.png", -1)
     background = load_image('main_menu_picture.jpg')
     pygame.init()
     size = 1000, 840

@@ -1,6 +1,7 @@
 import pygame
 import os
 import tkinter.filedialog
+
 barriers = {}
 buttons = {}
 keys_for_btns = {}
@@ -9,7 +10,7 @@ keys_for_btns = {}
 def prompt_file():
     top = tkinter.Tk()
     top.withdraw()  # hide window
-    file_name = tkinter.filedialog.askopenfilename(parent=top, filetypes=(("text files", "*.txt"), ),
+    file_name = tkinter.filedialog.askopenfilename(parent=top, filetypes=(("text files", "*.txt"),),
                                                    title="Выберите уровень",
                                                    initialdir="levels/", multiple=False)
     top.destroy()
@@ -46,7 +47,7 @@ class Level:
         self.main_font = pygame.font.SysFont('Segoe Print', 25)
         # значения по умолчанию
         self.left = 20
-        self.top = 28
+        self.top = 48
         self.cell_size = 24
         self.object = ["stone.png", "barrier.png", "activate_button.png",
                        "portal_red.png", "portal_blue.png", "water-block.png",
@@ -64,6 +65,16 @@ class Level:
         self.water_block = pygame.transform.scale(load_image("water-block.png", -1), (24, 12))
         self.lava_block = pygame.transform.scale(load_image("lava-block.png", -1), (24, 12))
         self.poison_block = pygame.transform.scale(load_image("poison-block.png", -1), (24, 12))
+        self.stop = pygame.transform.scale(load_image('pause.png', -1), (40, 40))
+        self.pause_mouse = pygame.transform.scale(load_image('pause_mouse.png', -1), (40, 40))
+        self.what = pygame.transform.scale(load_image('how_to_play.png', -1), (200, 200))
+        self.what_mouse = pygame.transform.scale(load_image('how_to_play_mouse.png', -1), (200, 200))
+        self.exit = pygame.transform.scale(load_image('exit.png', -1), (200, 200))
+        self.exit_mouse = pygame.transform.scale(load_image('exit_mouse.png', -1), (200, 200))
+        self.music = pygame.transform.scale(load_image('music_on.png', -1), (200, 200))
+        self.music_mouse = pygame.transform.scale(load_image('music_on_mouse.png', -1), (200, 200))
+        self.play = pygame.transform.scale(load_image('play.png', -1), (200, 200))
+        self.play_mouse = pygame.transform.scale(load_image('play_mouse.png', -1), (200, 200))
         self.current_file = ""
         self.floor()
 
@@ -107,6 +118,7 @@ class Level:
         self.change_object_color = "white"
         self.save_map_color = "white"
         self.edit_map_color = "white"
+        self.pause_flag = False
 
     # настройка внешнего вида
     # def set_view(self, left, top, cell_size):
@@ -131,25 +143,25 @@ class Level:
         for y in range(self.height):
             for x in range(self.width):
                 if self.board[x][y] == 1:
-                    screen.blit(self.stone, (x * 24 + 20, y * 24 + 28))
+                    screen.blit(self.stone, (x * 24 + 20, y * 24 + 48))
                 elif self.board[x][y] == 2:
-                    screen.blit(self.bar, (x * 24 + 20, y * 24 + 28))
+                    screen.blit(self.bar, (x * 24 + 20, y * 24 + 48))
                 elif self.board[x][y] == 3:
-                    screen.blit(self.stone, (x * 24 + 20, y * 24 + 28))
-                    screen.blit(self.stone, ((x + 1) * 24 + 20, y * 24 + 28))
-                    screen.blit(self.btn, (x * 24 + 20, y * 24 + 28))
+                    screen.blit(self.stone, (x * 24 + 20, y * 24 + 48))
+                    screen.blit(self.stone, ((x + 1) * 24 + 20, y * 24 + 48))
+                    screen.blit(self.btn, (x * 24 + 20, y * 24 + 48))
                 elif self.board[x][y] == 4:
-                    screen.blit(self.red_portal, (x * 24 + 20, y * 24 + 28))
+                    screen.blit(self.red_portal, (x * 24 + 20, y * 24 + 48))
                 elif self.board[x][y] == 5:
-                    screen.blit(self.blue_portal, (x * 24 + 20, y * 24 + 28))
+                    screen.blit(self.blue_portal, (x * 24 + 20, y * 24 + 48))
                 if self.board[x][y] in [6, 7, 8]:
-                    screen.blit(self.stone, (x * 24 + 20, y * 24 + 28))
+                    screen.blit(self.stone, (x * 24 + 20, y * 24 + 48))
                     if self.board[x][y] == 6:
-                        screen.blit(self.water_block, (x * 24 + 20, y * 24 + 28))
+                        screen.blit(self.water_block, (x * 24 + 20, y * 24 + 48))
                     elif self.board[x][y] == 7:
-                        screen.blit(self.lava_block, (x * 24 + 20, y * 24 + 28))
+                        screen.blit(self.lava_block, (x * 24 + 20, y * 24 + 48))
                     elif self.board[x][y] == 8:
-                        screen.blit(self.poison_block, (x * 24 + 20, y * 24 + 28))
+                        screen.blit(self.poison_block, (x * 24 + 20, y * 24 + 48))
 
         for y in range(self.height):
             for x in range(self.width):
@@ -161,11 +173,12 @@ class Level:
         self.clear_map = self.main_font.render('Очистить карту', True, self.clear_map_color)
         self.save_map = self.main_font.render('Сохранить карту', True, self.save_map_color)
         self.edit_map = self.main_font.render("Редактировать уровень", True, self.edit_map_color)
-        screen.blit(self.edit_map, (10, -15))
-        screen.blit(self.change_object, (30, 780))
-        screen.blit(self.current_object, (280, 790))
-        screen.blit(self.clear_map, (390, 780))
-        screen.blit(self.save_map, (730, 780))
+        screen.blit(self.stop if not self.pause_flag else self.pause_mouse, (940, 5))
+        screen.blit(self.edit_map, (10, 5))
+        screen.blit(self.change_object, (30, 795))
+        screen.blit(self.current_object, (280, 805))
+        screen.blit(self.clear_map, (390, 795))
+        screen.blit(self.save_map, (730, 795))
 
     # преобразует координаты мыши в координаты ячейки
     def get_cell(self, mouse_pos):
@@ -179,23 +192,89 @@ class Level:
 
     # рассматривает координаты
     def get_click(self, mouse_pos, key_for_bar=None):
-        if 780 < mouse_pos[1] < 780 + self.clear_map.get_height():
-            if 390 < mouse_pos[0] < 390 + self.clear_map.get_width():
+        x, y = mouse_pos
+        if 780 < y < 780 + self.clear_map.get_height():
+            if 390 < x < 390 + self.clear_map.get_width():
                 self.clear()
-            elif 30 < mouse_pos[0] < 30 + self.change_object.get_width() and not self.cr_btn:
+            elif 30 < x < 30 + self.change_object.get_width() and not self.cr_btn:
                 self.obj_index = (self.obj_index + 1) % len(self.object)
                 if self.obj_index == 2:
                     self.obj_index += 1
-            elif 730 < mouse_pos[0] < 730 + self.save_map.get_width():
+            elif 730 < x < 730 + self.save_map.get_width():
                 self.save()
-        elif 0 < mouse_pos[1] < self.edit_map.get_height() - 15:
-            if 10 < mouse_pos[0] < self.edit_map.get_width():
-                self.edit_board()
-
+        elif 0 < y < self.edit_map.get_height() - 15 and 10 < x < self.edit_map.get_width():
+            self.edit_board()
+        elif 940 <= x <= 980 and 5 <= y <= 45:
+            self.stop_game()
         cell = self.get_cell(mouse_pos)
         if cell is None:
             return
         self.on_click(cell, key_for_bar)
+
+    def stop_game(self):
+        new_screen = pygame.display.set_mode((1000, 840))
+        new_screen.fill("black")
+        run = True
+        font = pygame.font.SysFont('Segoe Print', 75)
+        text = font.render('Игра приостановлена', True, "white")
+        new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
+        s_c_exit, s_c_what, s_c_music, s_c_play = False, False, False, False
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEMOTION:
+                    x, y = event.pos
+                    if 80 <= x <= 230 and 490 <= y <= 640:
+                        s_c_exit = True
+                    else:
+                        s_c_exit = False
+                    if 310 <= x <= 460 and 490 <= y <= 640:
+                        s_c_play = True
+                    else:
+                        s_c_play = False
+                    if 540 <= x <= 690 and 490 <= y <= 640:
+                        s_c_what = True
+                    else:
+                        s_c_what = False
+                    if 770 <= x <= 920 and 490 <= y <= 640:
+                        s_c_music = True
+                    else:
+                        s_c_music = False
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    x, y = event.pos
+                    if 80 <= x <= 230 and 490 <= y <= 640:
+                        """"там проблемы в другом файле"""
+                    elif 310 <= x <= 390 and 490 <= y <= 640:
+                        run = False
+                    elif 540 <= x <= 690 and 490 <= y <= 690:
+                        self.do_info()
+                        new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
+                    elif 770 <= x <= 920 and 490 <= y <= 640:
+                        """что-то с музыкой"""
+            btn_exit = self.exit_mouse if s_c_exit else self.exit
+            btn_exit = pygame.transform.scale(btn_exit, (150, 150))
+            new_screen.blit(btn_exit, (80, 490))
+            btn_play = self.play_mouse if s_c_play else self.play
+            btn_play = pygame.transform.scale(btn_play, (150, 150))
+            new_screen.blit(btn_play, (310, 490))
+            btn_info = self.what_mouse if s_c_what else self.what
+            btn_info = pygame.transform.scale(btn_info, (150, 150))
+            new_screen.blit(btn_info, (540, 490))
+            btn_music = self.music_mouse if s_c_music else self.music
+            btn_music = pygame.transform.scale(btn_music, (150, 150))
+            new_screen.blit(btn_music, (770, 490))
+            pygame.display.flip()
+
+            pygame.display.flip()
+
+    def do_info(self):
+        screen = pygame.display.set_mode((1000, 840))
+        screen.fill("black")
+        pygame.display.flip()
+        while pygame.event.wait().type != pygame.QUIT:
+            """Будет информация про застройку"""
+            pass
 
     # очищает поле
     def clear(self):
@@ -270,18 +349,21 @@ class Level:
 
     # смена цвета при наведении
     def set_color(self, mouse_pos):
-        if 390 < mouse_pos[0] < 390 + self.clear_map.get_width() and \
-                780 < mouse_pos[1] < 780 + self.clear_map.get_height():
+        x, y = mouse_pos
+        if 390 <= x <= 390 + self.clear_map.get_width() and \
+                780 <= y <= 780 + self.clear_map.get_height():
             self.clear_map_color = "yellow"
-        elif 30 < mouse_pos[0] < 30 + self.change_object.get_width() and \
-                780 < mouse_pos[1] < 780 + self.clear_map.get_height():
+        elif 30 <= x <= 30 + self.change_object.get_width() and \
+                780 <= y <= 780 + self.clear_map.get_height():
             self.change_object_color = "yellow"
-        elif 730 < mouse_pos[0] < 730 + self.save_map.get_width() and \
-                780 < mouse_pos[1] < 780 + self.clear_map.get_height():
+        elif 730 <= x <= 730 + self.save_map.get_width() and \
+                780 <= y <= 780 + self.clear_map.get_height():
             self.save_map_color = "yellow"
-        elif 0 < mouse_pos[1] < self.edit_map.get_height() - 15 and \
-                10 < mouse_pos[0] < self.edit_map.get_width():
+        elif 0 <= y <= self.edit_map.get_height() - 15 and \
+                10 <= x <= self.edit_map.get_width():
             self.edit_map_color = "yellow"
+        elif 940 <= x <= 980 and 5 <= y <= 45:
+            self.pause_flag = True
         else:
             self.default_color()
 
@@ -409,4 +491,3 @@ class Level:
                 buttons[cnt].extend([(x, y)])
             except KeyError:
                 buttons[cnt] = [(x, y)]
-

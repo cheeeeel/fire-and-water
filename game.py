@@ -310,6 +310,7 @@ class Liquids(pygame.sprite.Sprite):
 class Game:
     def __init__(self, name):
         self.name = name
+        self.running = True
         self.all_sprites = pygame.sprite.Group()
         self.platforms = pygame.sprite.Group()
         self.heroes = pygame.sprite.Group()
@@ -335,44 +336,86 @@ class Game:
         self.play = load_image('play.png', -1)
         self.retry_mouse = load_image('retry_mouse.png', -1)
         self.retry = load_image('retry.png', -1)
+        self.what_mouse = load_image('how_to_play_mouse.png', -1)
+        self.what = load_image('how_to_play.png', -1)
+        self.music_mouse = load_image('music_on_mouse.png', -1)
+        self.music = load_image('music_on.png', -1)
 
         # self.pl2 = Heroes(110, 670, "water")
         # self.pl1 = Heroes(50, 670, "fire")
         # self.box1 = Box(300, 210)
 
     def pause(self):
-        new_screen = pygame.display.set_mode((1000, 500))
+        new_screen = pygame.display.set_mode((1000, 840))
         new_screen.fill("black")
         run = True
-        s_c_retry, s_c_play, s_c_exit = False, False, False
+        s_c_retry, s_c_play, s_c_exit, s_c_music, s_c_what = False, False, False, False, False
+        font = pygame.font.SysFont('Segoe Print', 75)
+        text = font.render('Игра приостановлена', True, "white")
+        new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
-                    if 100 <= x <= 300 and 150 <= y <= 350:
+                    if 100 <= x <= 300 and 290 <= y <= 490:
                         s_c_exit = True
                     else:
                         s_c_exit = False
-                    if 400 <= x <= 600 and 150 <= y <= 350:
+                    if 400 <= x <= 600 and 290 <= y <= 490:
                         s_c_play = True
                     else:
                         s_c_play = False
-                    if 700 <= x <= 900 and 150 <= y <= 350:
+                    if 700 <= x <= 900 and 290 <= y <= 490:
                         s_c_retry = True
                     else:
                         s_c_retry = False
+                    if 250 <= x <= 450 and 540 <= y <= 740:
+                        s_c_what = True
+                    else:
+                        s_c_what = False
+                    if 550 <= x <= 750 and 540 <= y <= 740:
+                        s_c_music = True
+                    else:
+                        s_c_music = False
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    x, y = event.pos
+                    if 100 <= x <= 300 and 290 <= y <= 490:
+                        self.running = False
+                        run = False
+                    elif 400 <= x <= 600 and 290 <= y <= 490:
+                        run = False
+                    elif 700 <= x <= 900 and 290 <= y <= 490:
+                        """self.load_level()"""
+                    elif 550 <= x <= 750 and 540 <= y <= 740:
+                        """что-то с музыкой"""
+                    elif 250 <= x <= 450 and 540 <= y <= 740:
+                        self.do_info()
+                        new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
             btn_exit = self.exit_mouse if s_c_exit else self.exit
             btn_exit = pygame.transform.scale(btn_exit, (200, 200))
-            screen.blit(btn_exit, (100, 150))
+            screen.blit(btn_exit, (100, 290))
             btn_play = self.play_mouse if s_c_play else self.play
             btn_play = pygame.transform.scale(btn_play, (200, 200))
-            screen.blit(btn_play, (400, 150))
+            screen.blit(btn_play, (400, 290))
             btn_retry = self.retry_mouse if s_c_retry else self.retry
             btn_retry = pygame.transform.scale(btn_retry, (200, 200))
-            screen.blit(btn_retry, (700, 150))
+            screen.blit(btn_retry, (700, 290))
+            btn_music = self.music_mouse if s_c_music else self.music
+            btn_music = pygame.transform.scale(btn_music, (200, 200))
+            screen.blit(btn_music, (550, 540))
+            btn_info = self.what_mouse if s_c_what else self.what
+            btn_info = pygame.transform.scale(btn_info, (200, 200))
+            screen.blit(btn_info, (250, 540))
             pygame.display.flip()
+    
+    def do_info(self):
+        screen.fill("black")
+        pygame.display.flip()
+        while pygame.event.wait().type != pygame.QUIT:
+            """Будет информация про управление"""
+            pass
 
     def load_level(self):
         with open(self.name) as f:
@@ -420,16 +463,16 @@ class Game:
         clock = pygame.time.Clock()
         fps = 60
         screen.fill("black")
-        running = True
+        self.running = True
         set_pause = False
         fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         font = pygame.font.SysFont('Segoe Print', 30)
         level_text = font.render('Уровень 1', True, "white")
         screen.blit(level_text, (20, 10))
-        while running:
+        while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    self.running = False
                 if event.type == pygame.MOUSEMOTION:
                     if 930 <= event.pos[0] <= 990 and 10 <= event.pos[1] <= 70:
                         set_pause = True
@@ -438,7 +481,6 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 \
                         and 930 <= event.pos[0] <= 990 and 10 <= event.pos[1] <= 70:
                     self.pause()
-                    pygame.display.set_mode((1000, 840))
                     screen.blit(level_text, (20, 10))
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
