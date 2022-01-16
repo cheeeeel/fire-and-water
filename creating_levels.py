@@ -285,7 +285,10 @@ class Level:
                         run = False
                     elif 540 <= x <= 690 and 490 <= y <= 690:
                         self.do_info()
+                        new_screen.fill("black")
                         new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
+                        s_c_what = False
+                        break
                     elif 770 <= x <= 920 and 490 <= y <= 640:
                         self.cnt_flag = (self.cnt_flag + 1) % 2
                         self.set_music()
@@ -321,10 +324,101 @@ class Level:
     def do_info(self):
         screen = pygame.display.set_mode((1000, 840))
         screen.fill("black")
-        pygame.display.flip()
-        while pygame.event.wait().type != pygame.QUIT:
-            """Будет информация про застройку"""
-            pass
+
+        stone = pygame.transform.scale(self.stone, (50, 50))
+        font = pygame.font.SysFont('Segoe print', 30)
+        text = font.render('платформа, на которой можно стоять', True, (255, 255, 255))
+        screen.blit(text, (75, 10))
+        screen.blit(stone, (10, 10))
+
+        bar = pygame.transform.scale(self.bar, (50, 50))
+        font = pygame.font.SysFont('Segoe print', 15)
+        text = font.render('движущийся барьер, который можно активировать кнопкой', True, (255, 255, 255))
+        screen.blit(text, (75, 70))
+        text = font.render('ЛКМ - создать горизонтальный барьер, ПКМ - вертикальный', True, (255, 255, 255))
+        screen.blit(text, (75, 90))
+        screen.blit(bar, (10, 70))
+
+        btn = pygame.transform.scale(self.btn, (50, 25))
+        text = font.render('активирующая барьер кнопка, при нажатии на неё немного опускается', True, (255, 255, 255))
+        screen.blit(text, (75, 140))
+        text = font.render('можно поставить, после постановки барьера \
+неограниченное кол-во раз, ПКМ - конец', True, (255, 255, 255))
+        screen.blit(text, (75, 160))
+        screen.blit(btn, (10, 150))
+
+        por_fire = pygame.transform.scale(self.red_portal, (50, 50))
+        font = pygame.font.SysFont('Segoe print', 20)
+        text = font.render('портал завершения уровня для огня, может быть только один', True, (255, 255, 255))
+        screen.blit(text, (75, 215))
+        screen.blit(por_fire, (10, 210))
+
+        por_water = pygame.transform.scale(self.blue_portal, (50, 50))
+        text = font.render('портал завершения уровня для воды, может быть только один', True, (255, 255, 255))
+        screen.blit(text, (75, 285))
+        screen.blit(por_water, (10, 280))
+
+        water = pygame.transform.scale(self.water_block, (50, 50))
+        font = pygame.font.SysFont('Segoe print', 15)
+        text = font.render('блок воды, при попадании в который персонаж огоня умирает', True, (255, 255, 255))
+        screen.blit(text, (75, 350))
+        text = font.render('причём с персонажем воды ничего не происходит', True, (255, 255, 255))
+        screen.blit(text, (75, 370))
+        screen.blit(water, (10, 350))
+
+        lava = pygame.transform.scale(self.lava_block, (50, 50))
+        text = font.render('блок лавы, при попадании в который персонаж воды умирает', True, (255, 255, 255))
+        screen.blit(text, (75, 420))
+        text = font.render('причём с персонажем огня ничего не происходит', True, (255, 255, 255))
+        screen.blit(text, (75, 440))
+        screen.blit(lava, (10, 420))
+
+        poison = pygame.transform.scale(self.poison_block, (50, 50))
+        font = pygame.font.SysFont('Segoe print', 20)
+        text = font.render('блок яда, при попадании в который любой из персонажей умирает', True, (255, 255, 255))
+        screen.blit(text, (75, 495))
+        screen.blit(poison, (10, 490))
+
+        box = pygame.transform.scale(self.box, (50, 50))
+        font = pygame.font.SysFont('Segoe print', 15)
+        text = font.render('объект, котрый можно толкать при взаимодействии \
+в сторону движения персонажа', True, (255, 255, 255))
+        screen.blit(text, (75, 560))
+        text = font.render('если персонаж встанет на этот объект, то он не сдвинется', True, (255, 255, 255))
+        screen.blit(text, (75, 580))
+        screen.blit(box, (10, 560))
+
+        f_man = pygame.transform.scale(self.fire, (50, 80))
+        font = pygame.font.SysFont('Segoe print', 30)
+        text = font.render('один из главных персонажей, может быть только один', True, (255, 255, 255))
+        screen.blit(text, (75, 645))
+        screen.blit(f_man, (10, 630))
+
+        w_woman = pygame.transform.scale(self.water, (50, 80))
+        text = font.render('один из главных персонажей, может быть только один', True, (255, 255, 255))
+        screen.blit(text, (75, 735))
+        screen.blit(w_woman, (10, 730))
+
+        close_window = pygame.transform.scale(load_image('close.png', -1), (75, 75))
+        close_window_mouse = pygame.transform.scale(load_image('close_mouse.png', -1), (75, 75))
+        screen.blit(close_window, (900, 25))
+        run = True
+
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEMOTION:
+                    x, y = event.pos
+                    if 900 <= x <= 975 and 25 <= y <= 100:
+                        screen.blit(close_window_mouse, (900, 25))
+                    else:
+                        screen.blit(close_window, (900, 25))
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    if 900 <= x <= 975 and 25 <= y <= 100 and event.button == 1:
+                        return
+            pygame.display.flip()
 
     # очищает поле
     def clear(self):
