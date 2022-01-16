@@ -27,16 +27,20 @@ def load_image(s, key=None):
 
 class MainMenu:
     def __init__(self, width, height):
+        self.cnt, self.flag_sound = 0, False
         self.make_inscriptions(width, height)
 
     def make_inscriptions(self, width, height, col_redactor='white',
                           col_single='white', col_online='white', flag_settings=False):
         self.start_screen(width, height)
         self.main_font = pygame.font.SysFont('Segoe Print', round(height // 5 * 0.3))
-
-        file = sound_on_mouse \
-            if flag_settings else sound_on
-        self.setting_image = pygame.transform.scale(file, (width // 10, height // 8))
+        if not self.flag_sound:
+            file = sound_on_mouse \
+                if flag_settings else sound_on
+        else:
+            file = sound_off_mouse \
+                if flag_settings else sound_off
+        self.setting_image = pygame.transform.scale(file, (100, 100))
         screen.blit(self.setting_image, (width * 0.89, height // 75))
 
         self.txt_online_btn = self.main_font.render('Игра по сети', True, col_online)
@@ -84,7 +88,16 @@ class MainMenu:
             print("""Coming soon""")
         elif width * 0.89 <= x <= width * 0.89 + width // 10 \
                 and height // 75 <= y <= height // 75 + height // 8:
-            print("""Настройки""")
+            self.cnt = (self.cnt + 1) % 2
+            self.set_music()
+
+    def set_music(self):
+        global save_pos_flag
+        if self.cnt:
+            self.flag_sound = True
+        else:
+            self.flag_sound = False
+        save_pos_flag = True
 
     def set_color(self, x, y, width, height):
         if width // 75 <= x <= width // 75 + self.txt_one_pc_btn.get_width() \
@@ -126,8 +139,11 @@ class MainMenu:
 
 
 if __name__ == '__main__':
+    save_pos_flag = False
     sound_on_mouse = load_image("music_on_mouse.png", -1)
     sound_on = load_image("music_on.png", -1)
+    sound_off_mouse = load_image("music_off_mouse.png", -1)
+    sound_off = load_image("music_off.png", -1)
     background = load_image('main_menu_picture.jpg')
     pygame.init()
     size = 1000, 840
@@ -141,7 +157,10 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 main.go_next(*event.pos, *size)
-                main.make_inscriptions(*size)
+                if not save_pos_flag:
+                    main.make_inscriptions(*size)
+                else:
+                    main.make_inscriptions(*size, flag_settings=True)
             if event.type == pygame.MOUSEMOTION:
                 main.set_color(*event.pos, *size)
         pygame.display.flip()

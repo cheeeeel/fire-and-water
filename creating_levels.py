@@ -57,6 +57,8 @@ class Level:
         self.flag_end = False
         self.cr_btn = False
         self.running = True
+        self.flag_sound = False
+        self.cnt_flag = 0
         self.board = [[0 for _ in range(height)] for _ in range(width)]
         self.stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
         self.bar = pygame.transform.scale(load_image("barrier.png"), (24, 24))
@@ -72,8 +74,10 @@ class Level:
         self.what_mouse = pygame.transform.scale(load_image('how_to_play_mouse.png', -1), (200, 200))
         self.exit = pygame.transform.scale(load_image('exit.png', -1), (200, 200))
         self.exit_mouse = pygame.transform.scale(load_image('exit_mouse.png', -1), (200, 200))
-        self.music = pygame.transform.scale(load_image('music_on.png', -1), (200, 200))
-        self.music_mouse = pygame.transform.scale(load_image('music_on_mouse.png', -1), (200, 200))
+        self.sound_on_mouse = pygame.transform.scale(load_image("music_on_mouse.png", -1), (200, 200))
+        self.sound_on = pygame.transform.scale(load_image("music_on.png", -1), (200, 200))
+        self.sound_off_mouse = pygame.transform.scale(load_image("music_off_mouse.png", -1), (200, 200))
+        self.sound_off = pygame.transform.scale(load_image("music_off.png", -1), (200, 200))
         self.play = pygame.transform.scale(load_image('play.png', -1), (200, 200))
         self.play_mouse = pygame.transform.scale(load_image('play_mouse.png', -1), (200, 200))
         self.current_file = ""
@@ -273,7 +277,10 @@ class Level:
                         self.do_info()
                         new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
                     elif 770 <= x <= 920 and 490 <= y <= 640:
-                        """что-то с музыкой"""
+                        self.cnt_flag = (self.cnt_flag + 1) % 2
+                        self.set_music()
+                        new_screen.fill((0, 0, 0))
+                        new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
             btn_exit = self.exit_mouse if s_c_exit else self.exit
             btn_exit = pygame.transform.scale(btn_exit, (150, 150))
             new_screen.blit(btn_exit, (80, 490))
@@ -283,12 +290,19 @@ class Level:
             btn_info = self.what_mouse if s_c_what else self.what
             btn_info = pygame.transform.scale(btn_info, (150, 150))
             new_screen.blit(btn_info, (540, 490))
-            btn_music = self.music_mouse if s_c_music else self.music
+            if not self.flag_sound:
+                btn_music = self.sound_on_mouse if s_c_music else self.sound_on
+            else:
+                btn_music = self.sound_off_mouse if s_c_music else self.sound_off
             btn_music = pygame.transform.scale(btn_music, (150, 150))
             new_screen.blit(btn_music, (770, 490))
             pygame.display.flip()
 
-            pygame.display.flip()
+    def set_music(self):
+        if self.cnt_flag:
+            self.flag_sound = True
+        else:
+            self.flag_sound = False
 
     def do_info(self):
         screen = pygame.display.set_mode((1000, 840))
