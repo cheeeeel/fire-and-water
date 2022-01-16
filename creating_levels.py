@@ -282,7 +282,7 @@ class Level:
                         self.running = False
                         return
                     elif 310 <= x <= 460 and 490 <= y <= 640:
-                        run = False
+                        return
                     elif 540 <= x <= 690 and 490 <= y <= 690:
                         self.do_info()
                         new_screen.fill("black")

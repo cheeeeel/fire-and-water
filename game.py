@@ -456,7 +456,10 @@ class Game:
                         new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
                     elif 250 <= x <= 450 and 540 <= y <= 740:
                         self.do_info()
+                        new_screen.fill((0, 0, 0))
                         new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
+                        s_c_what = False
+                        break
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     return
             btn_exit = self.exit_mouse if s_c_exit else self.exit
@@ -490,9 +493,25 @@ class Game:
     def do_info(self):
         screen.fill("black")
         pygame.display.flip()
-        while pygame.event.wait().type != pygame.QUIT:
-            """Будет информация про управление"""
-            pass
+        close_window = pygame.transform.scale(load_image('close.png', -1), (75, 75))
+        close_window_mouse = pygame.transform.scale(load_image('close_mouse.png', -1), (75, 75))
+        screen.blit(close_window, (900, 25))
+        run = True
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEMOTION:
+                    x, y = event.pos
+                    if 900 <= x <= 975 and 25 <= y <= 100:
+                        screen.blit(close_window_mouse, (900, 25))
+                    else:
+                        screen.blit(close_window, (900, 25))
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    if 900 <= x <= 975 and 25 <= y <= 100 and event.button == 1:
+                        return
+            pygame.display.flip()
 
     def load_level(self):
         with open(self.name) as f:
