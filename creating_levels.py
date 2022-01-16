@@ -291,6 +291,8 @@ class Level:
                         self.set_music()
                         new_screen.fill((0, 0, 0))
                         new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    return
             btn_exit = self.exit_mouse if s_c_exit else self.exit
             btn_exit = pygame.transform.scale(btn_exit, (150, 150))
             new_screen.blit(btn_exit, (80, 490))

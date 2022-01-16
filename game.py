@@ -322,6 +322,8 @@ class Game:
         # self.water = pygame.sprite.Group()
         # self.lava = pygame.sprite.Group()
         # self.poison = pygame.sprite.Group()
+        self.cnt_flag = 0
+        self.flag_sound = False
         self.water_jumping_start = pygame.USEREVENT + 1
         self.fire_jumping_start = pygame.USEREVENT + 2
         self.barriers_cords = []
@@ -338,8 +340,10 @@ class Game:
         self.retry = load_image('retry.png', -1)
         self.what_mouse = load_image('how_to_play_mouse.png', -1)
         self.what = load_image('how_to_play.png', -1)
-        self.music_mouse = load_image('music_on_mouse.png', -1)
-        self.music = load_image('music_on.png', -1)
+        self.sound_on_mouse = load_image('music_on_mouse.png', -1)
+        self.sound_on = load_image('music_on.png', -1)
+        self.sound_off_mouse = load_image('music_off_mouse.png', -1)
+        self.sound_off = load_image('music_off.png', -1)
 
         # self.pl2 = Heroes(110, 670, "water")
         # self.pl1 = Heroes(50, 670, "fire")
@@ -406,10 +410,15 @@ class Game:
                     elif 700 <= x <= 900 and 290 <= y <= 490:
                         """self.load_level()"""
                     elif 550 <= x <= 750 and 540 <= y <= 740:
-                        """что-то с музыкой"""
+                        self.cnt_flag = (self.cnt_flag + 1) % 2
+                        self.set_music()
+                        new_screen.fill((0, 0, 0))
+                        new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
                     elif 250 <= x <= 450 and 540 <= y <= 740:
                         self.do_info()
                         new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    return
             btn_exit = self.exit_mouse if s_c_exit else self.exit
             btn_exit = pygame.transform.scale(btn_exit, (200, 200))
             screen.blit(btn_exit, (100, 290))
@@ -419,13 +428,22 @@ class Game:
             btn_retry = self.retry_mouse if s_c_retry else self.retry
             btn_retry = pygame.transform.scale(btn_retry, (200, 200))
             screen.blit(btn_retry, (700, 290))
-            btn_music = self.music_mouse if s_c_music else self.music
+            if not self.flag_sound:
+                btn_music = self.sound_on_mouse if s_c_music else self.sound_on
+            else:
+                btn_music = self.sound_off_mouse if s_c_music else self.sound_off
             btn_music = pygame.transform.scale(btn_music, (200, 200))
             screen.blit(btn_music, (550, 540))
             btn_info = self.what_mouse if s_c_what else self.what
             btn_info = pygame.transform.scale(btn_info, (200, 200))
             screen.blit(btn_info, (250, 540))
             pygame.display.flip()
+
+    def set_music(self):
+        if self.cnt_flag:
+            self.flag_sound = True
+        else:
+            self.flag_sound = False
 
     def do_info(self):
         screen.fill("black")
@@ -528,6 +546,8 @@ class Game:
                         pygame.time.set_timer(water_jumping_start, 0)
                     else:
                         pl2.jump_flag = False
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    self.pause()
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
                 pl1.right()
@@ -633,6 +653,7 @@ class SelectLevel:
                         return os.path.join("main_levels", "1.txt")
                     elif event.button == 1 and user_levels_rect.collidepoint(event.pos):
                         return prompt_file()
+
             pygame.display.flip()
 
 
