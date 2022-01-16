@@ -660,7 +660,6 @@ class SelectLevel:
 
             pygame.display.flip()
 
-
 # pl2 = Heroes(110, 670, "water")
 # pl1 = Heroes(50, 670, "fire")
 # box1 = Box(300, 210)
