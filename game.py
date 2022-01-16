@@ -481,7 +481,10 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 \
                         and 930 <= event.pos[0] <= 990 and 10 <= event.pos[1] <= 70:
                     self.pause()
-                    screen.blit(level_text, (20, 10))
+                    if self.running:
+                        screen.blit(level_text, (20, 10))
+                    else:
+                        return
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         pygame.time.set_timer(water_jumping_start, 650)
@@ -499,7 +502,6 @@ class Game:
                         pygame.time.set_timer(water_jumping_start, 0)
                     else:
                         pl2.jump_flag = False
-
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
                 pl1.right()

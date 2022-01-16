@@ -56,6 +56,7 @@ class Level:
         self.counter = 0
         self.flag_end = False
         self.cr_btn = False
+        self.running = True
         self.board = [[0 for _ in range(height)] for _ in range(width)]
         self.stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
         self.bar = pygame.transform.scale(load_image("barrier.png"), (24, 24))
@@ -211,6 +212,26 @@ class Level:
             return
         self.on_click(cell, key_for_bar)
 
+    # смена цвета при наведении
+    def set_color(self, mouse_pos):
+        x, y = mouse_pos
+        if 390 <= x <= 390 + self.clear_map.get_width() and \
+                780 <= y <= 780 + self.clear_map.get_height():
+            self.clear_map_color = "yellow"
+        elif 30 <= x <= 30 + self.change_object.get_width() and \
+                780 <= y <= 780 + self.clear_map.get_height():
+            self.change_object_color = "yellow"
+        elif 730 <= x <= 730 + self.save_map.get_width() and \
+                780 <= y <= 780 + self.clear_map.get_height():
+            self.save_map_color = "yellow"
+        elif 0 <= y <= self.edit_map.get_height() - 15 and \
+                10 <= x <= self.edit_map.get_width():
+            self.edit_map_color = "yellow"
+        elif 940 <= x <= 980 and 5 <= y <= 45:
+            self.pause_flag = True
+        else:
+            self.default_color()
+
     def stop_game(self):
         new_screen = pygame.display.set_mode((1000, 840))
         new_screen.fill("black")
@@ -244,8 +265,9 @@ class Level:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     x, y = event.pos
                     if 80 <= x <= 230 and 490 <= y <= 640:
-                        """"там проблемы в другом файле"""
-                    elif 310 <= x <= 390 and 490 <= y <= 640:
+                        self.running = False
+                        return
+                    elif 310 <= x <= 460 and 490 <= y <= 640:
                         run = False
                     elif 540 <= x <= 690 and 490 <= y <= 690:
                         self.do_info()
@@ -347,55 +369,6 @@ class Level:
         else:
             self.board[i][j] = self.obj_index + 1 - self.board[i][j]
 
-    # смена цвета при наведении
-    def set_color(self, mouse_pos):
-        x, y = mouse_pos
-        if 390 <= x <= 390 + self.clear_map.get_width() and \
-                780 <= y <= 780 + self.clear_map.get_height():
-            self.clear_map_color = "yellow"
-        elif 30 <= x <= 30 + self.change_object.get_width() and \
-                780 <= y <= 780 + self.clear_map.get_height():
-            self.change_object_color = "yellow"
-        elif 730 <= x <= 730 + self.save_map.get_width() and \
-                780 <= y <= 780 + self.clear_map.get_height():
-            self.save_map_color = "yellow"
-        elif 0 <= y <= self.edit_map.get_height() - 15 and \
-                10 <= x <= self.edit_map.get_width():
-            self.edit_map_color = "yellow"
-        elif 940 <= x <= 980 and 5 <= y <= 45:
-            self.pause_flag = True
-        else:
-            self.default_color()
-
-    # обработка удаления барьера и кнопки
-    def delete_barrier_button(self, coords):
-        for i in list(barriers.keys()):
-            if any(coords == k for k in barriers[i]):
-                for x, y in barriers[i]:
-                    self.board[x][y] = 0
-                for x, y in buttons[i]:
-                    self.board[x][y] = 0
-                barriers.pop(i)
-                buttons.pop(i)
-                try:
-                    keys_for_btns.pop(i)
-                except KeyError:
-                    pass
-                return
-        for i in list(buttons.keys()):
-            if any(coords == k for k in buttons[i]):
-                for x, y in barriers[i]:
-                    self.board[x][y] = 0
-                for x, y in buttons[i]:
-                    self.board[x][y] = 0
-                barriers.pop(i)
-                buttons.pop(i)
-                try:
-                    keys_for_btns.pop(i)
-                except KeyError:
-                    pass
-                return
-
     # создание барьера
     def create_barrier(self, cell_coords, cnt, key_for_bar=None):
         x = cell_coords[0]
@@ -491,3 +464,57 @@ class Level:
                 buttons[cnt].extend([(x, y)])
             except KeyError:
                 buttons[cnt] = [(x, y)]
+
+    # обработка удаления барьера и кнопки
+    def delete_barrier_button(self, coords):
+        for i in list(barriers.keys()):
+            if any(coords == k for k in barriers[i]):
+                for x, y in barriers[i]:
+                    self.board[x][y] = 0
+                for x, y in buttons[i]:
+                    self.board[x][y] = 0
+                barriers.pop(i)
+                buttons.pop(i)
+                try:
+                    keys_for_btns.pop(i)
+                except KeyError:
+                    pass
+                return
+        for i in list(buttons.keys()):
+            if any(coords == k for k in buttons[i]):
+                for x, y in barriers[i]:
+                    self.board[x][y] = 0
+                for x, y in buttons[i]:
+                    self.board[x][y] = 0
+                barriers.pop(i)
+                buttons.pop(i)
+                try:
+                    keys_for_btns.pop(i)
+                except KeyError:
+                    pass
+                return
+
+    def mainloop(self, name):
+        size = 1000, 840
+        screen = pygame.display.set_mode(size)
+        name.render(screen)
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if name.cr_btn and event.button == 3:
+                        name.flag_end = True
+                    if event.button == 1:
+                        name.get_click(event.pos, True)
+                        if not self.running:
+                            return
+                    elif event.button == 3:
+                        name.get_click(event.pos, False)
+                    else:
+                        name.get_click(event.pos)
+                if event.type == pygame.MOUSEMOTION:
+                    name.set_color(event.pos)
+            screen.fill((15, 82, 186))
+            name.render(screen)
+            pygame.display.flip()
