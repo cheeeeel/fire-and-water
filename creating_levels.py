@@ -313,8 +313,10 @@ class Level:
     def set_music(self):
         if self.cnt_flag:
             self.flag_sound = True
+            pygame.mixer.music.pause()
         else:
             self.flag_sound = False
+            pygame.mixer.music.unpause()
 
     def do_info(self):
         screen = pygame.display.set_mode((1000, 840))

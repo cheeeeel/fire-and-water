@@ -6,6 +6,18 @@ barriers_cords = []
 buttons_cords = []
 barriers = []
 buttons = []
+pygame.mixer.pre_init(44100, -16, 1, 512)
+pygame.init()
+pygame.mixer.music.load("sounds/music.mp3")
+pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0.2)
+
+jump = pygame.mixer.Sound("sounds/jump.ogg")
+jump.set_volume(0.5)
+
+death = pygame.mixer.Sound("sounds/death.ogg")
+
+win_end = pygame.mixer.Sound("sounds/win2.ogg")
 
 pygame.init()
 size = 1000, 800
@@ -73,9 +85,9 @@ class Heroes(pygame.sprite.Sprite):
         self.add(heroes)
         self.hero = hero
         if self.hero == "fire":
-            self.image = load_image("fire-bg.png", -1)
+            self.image = load_image("рфпш.png", -1)
         else:
-            self.image = load_image("water-bg.png", -1)
+            self.image = load_image("hagi-vagi.png", -1)
         self.image = pygame.transform.scale(self.image, (50, 80))
         self.rect = self.image.get_rect()
         self.rect.x = x
@@ -86,6 +98,7 @@ class Heroes(pygame.sprite.Sprite):
         self.on_button = False
         self.lose = False
         self.under_bar = False
+        self.music_flag = True
         self.index = (-100, -100)
 
     # гравитация
@@ -110,6 +123,9 @@ class Heroes(pygame.sprite.Sprite):
                 self.hero == "water" and pygame.sprite.spritecollideany(self, lava) or \
                 pygame.sprite.spritecollideany(self, poison):
             self.lose = True
+            # if not self.music_flag:
+            #     death.play()
+
         for block in buttons_cords:
             for i, j in block:
                 if (i - 1) * 24 <= self.rect.x - 20 <= (i + 1) * 24 and \
@@ -372,7 +388,7 @@ class Game:
         run = True
         s_c_retry, s_c_play, s_c_exit, s_c_music, s_c_what = False, False, False, False, False
         font = pygame.font.SysFont('Segoe Print', 75)
-        text = font.render('Игра приостановлена', True, "white")
+        text = font.render('Игра приостановлена', True, (255, 255, 255))
         new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
         while run:
             for event in pygame.event.get():
@@ -442,8 +458,10 @@ class Game:
     def set_music(self):
         if self.cnt_flag:
             self.flag_sound = True
+            pygame.mixer.music.pause()
         else:
             self.flag_sound = False
+            pygame.mixer.music.unpause()
 
     def do_info(self):
         screen.fill("black")
@@ -511,7 +529,7 @@ class Game:
         set_pause = False
         fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         font = pygame.font.SysFont('Segoe Print', 30)
-        level_text = font.render('Уровень 1', True, "white")
+        level_text = font.render('Уровень 1', True, (255, 255, 255))
         screen.blit(level_text, (20, 10))
         while self.running:
             for event in pygame.event.get():
@@ -532,9 +550,13 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         pygame.time.set_timer(water_jumping_start, 650)
+                        if not self.cnt_flag:
+                            jump.play()
                         pl2.jump_flag = True
                     if event.key == pygame.K_w:
                         pygame.time.set_timer(fire_jumping_start, 650)
+                        if not self.cnt_flag:
+                            jump.play()
                         pl1.jump_flag = True
                 if event.type == fire_jumping_start:
                     if not pl1.jump_flag:
@@ -605,17 +627,29 @@ class Game:
                     for block in barriers:
                         for bar in block:
                             bar.down()
+            pl1.music_flag = self.cnt_flag
+            pl2.music_flag = self.cnt_flag
+            if (not pl1.music_flag or not pl2.music_flag) and (pl1.lose or pl2.lose):
+                death.play()
+
             if pl1.lose or pl2.lose:
                 screen.fill("black")
                 main_font = pygame.font.SysFont('Segoe Print', 60)
-                lose = main_font.render("Вы проиграли!", True, "white")
+                lose = main_font.render("Вы проиграли!", True, (255, 255, 255))
+                pygame.mixer.music.pause()
                 screen.blit(lose, (300, 400))
                 pygame.display.flip()
             elif pl1.in_portal and pl2.in_portal:
                 screen.fill("black")
                 main_font = pygame.font.SysFont('Segoe Print', 60)
-                win = main_font.render("Вы победили!", True, "white")
+                if not self.cnt_flag:
+                    win_end.play()
+                    pygame.mixer.music.pause()
+                # win_end.set_volume(0)
+                win = main_font.render("Mission completed", True, (255, 255, 255))
                 screen.blit(win, (300, 400))
+                win = main_font.render("+respect", True, (255, 255, 255))
+                screen.blit(win, (330, 500))
                 pygame.display.flip()
             else:
                 screen.blit(fon, (44, 104))
@@ -635,12 +669,12 @@ class SelectLevel:
         screen.fill("black")
         main_font = pygame.font.SysFont('Segoe Print', 60)
 
-        plot = main_font.render('Сюжетные уровни', True, "white")
+        plot = main_font.render('Сюжетные уровни', True, (255, 255, 255))
         plot_rect = plot.get_rect()
         plot_rect.x = 100
         plot_rect.y = 100
 
-        user_levels = main_font.render('Пользовательские уровни', True, "white")
+        user_levels = main_font.render('Пользовательские уровни', True, (255, 255, 255))
         user_levels_rect = user_levels.get_rect()
         user_levels_rect.x = 100
         user_levels_rect.y = 500

@@ -95,8 +95,10 @@ class MainMenu:
         global save_pos_flag
         if self.cnt:
             self.flag_sound = True
+            pygame.mixer.music.pause()
         else:
             self.flag_sound = False
+            pygame.mixer.music.unpause()
         save_pos_flag = True
 
     def set_color(self, x, y, width, height):
