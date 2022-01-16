@@ -556,6 +556,8 @@ class Level:
                     name.set_color(event.pos)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.stop_game()
+                    if not self.running:
+                        break
             screen.fill((15, 82, 186))
             name.render(screen)
             pygame.display.flip()

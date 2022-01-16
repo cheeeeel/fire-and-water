@@ -548,6 +548,10 @@ class Game:
                         pl2.jump_flag = False
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.pause()
+                    if self.running:
+                        screen.blit(level_text, (20, 10))
+                    else:
+                        return
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
                 pl1.right()
