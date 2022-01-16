@@ -328,6 +328,7 @@ class Level:
                 f.write('\n')
                 for m in list(barriers.keys()):
                     f.write(f'{barriers[m]}; {buttons[m]}\n')
+            self.current_file = name.split("/")[-1]
 
     # обновляет значение ячейки на поле
     def on_click(self, cell_coords, key_for_bar=None):

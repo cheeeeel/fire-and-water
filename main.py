@@ -81,7 +81,7 @@ class MainMenu:
             self.creating_levels()
         elif width // 75 <= x <= width // 75 + self.txt_online_btn.get_width() \
                 and height * 0.85 <= y <= height * 0.91:
-            print("""Игра по сети""")
+            print("""Coming soon""")
         elif width * 0.89 <= x <= width * 0.89 + width // 10 \
                 and height // 75 <= y <= height // 75 + height // 8:
             print("""Настройки""")
@@ -108,9 +108,17 @@ class MainMenu:
 
     def start_game(self):
         name = SelectLevel().first_select()
-        g = Game(name)
-        g.load_level()
-        g.mainloop()
+        if name:
+            print(name)
+            if "user" in name:
+                lvl = f"Пользовательский уровень {name.split('_')[2][0]}"
+            else:
+                lvl = f"Уровень {name.split('.'[0][-1])}"
+            g = Game(name)
+            screen.fill("black")
+            g.objects()
+            g.load_level()
+            g.mainloop(lvl)
 
     def creating_levels(self):
         level = Level(40, 31)
