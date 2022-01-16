@@ -82,17 +82,23 @@ def prompt_file():
 class Heroes(pygame.sprite.Sprite):
     def __init__(self, x, y, hero):
         super().__init__(all_sprites)
+        self.x = x
+        self.y = y
         self.add(heroes)
         self.hero = hero
+        self.frames = []
         if self.hero == "fire":
-            self.image = load_image("рфпш.png", -1)
+            self.cut_sheet(load_image("fire-sheet1.png", -1), 5, 2)
         else:
-            self.image = load_image("hagi-vagi.png", -1)
-        self.image = pygame.transform.scale(self.image, (50, 80))
+            self.cut_sheet(load_image("water-sheet1.png", -1), 5, 2)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        #self.rect = self.rect.move(x, y)
+#        self.image = pygame.transform.scale(self.image, (50, 80))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.mask = pygame.mask.from_surface(self.image)
+        # self.mask = pygame.mask.from_surface(self.image)
         self.jump_flag = False
         self.in_portal = False
         self.on_button = False
@@ -100,6 +106,24 @@ class Heroes(pygame.sprite.Sprite):
         self.under_bar = False
         self.music_flag = True
         self.index = (-100, -100)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def animation(self):
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+        self.image = pygame.transform.scale(self.image, (50, 80))
+        # self.rect = self.image.get_rect()
+        # self.rect.x = self.x
+        # self.rect.y = self.y
+        self.mask = pygame.mask.from_surface(self.image)
 
     # гравитация
     def update(self):
@@ -531,6 +555,8 @@ class Game:
         font = pygame.font.SysFont('Segoe Print', 30)
         level_text = font.render('Уровень 1', True, (255, 255, 255))
         screen.blit(level_text, (20, 10))
+        anim = pygame.USEREVENT + 1
+        pygame.time.set_timer(anim, 100)
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -574,6 +600,10 @@ class Game:
                         screen.blit(level_text, (20, 10))
                     else:
                         return
+                if event.type == anim:
+                    pl1.animation()
+                    pl2.animation()
+                    pygame.display.flip()
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
                 pl1.right()
