@@ -51,15 +51,16 @@ class Level:
         self.cell_size = 24
         self.object = ["stone.png", "barrier.png", "activate_button.png",
                        "portal_red.png", "portal_blue.png", "water-block.png",
-                       "lava-block.png", "poison-block.png"]
+                       "lava-block.png", "poison-block.png", 'box.png', 'fire-bg.png', 'water-bg.png']
         self.obj_index = 0
         self.counter = 0
         self.flag_end = False
         self.cr_btn = False
         self.running = True
         self.flag_sound = False
+
         self.cnt_flag = 0
-        self.board = [[0 for _ in range(height)] for _ in range(width)]
+        self.board = [['`' for _ in range(height)] for _ in range(width)]
         self.stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
         self.bar = pygame.transform.scale(load_image("barrier.png"), (24, 24))
         self.btn = pygame.transform.scale(load_image("activate_button.png", -1), (48, 12))
@@ -80,6 +81,9 @@ class Level:
         self.sound_off = pygame.transform.scale(load_image("music_off.png", -1), (200, 200))
         self.play = pygame.transform.scale(load_image('play.png', -1), (200, 200))
         self.play_mouse = pygame.transform.scale(load_image('play_mouse.png', -1), (200, 200))
+        self.box = pygame.transform.scale(load_image('box.png', -1), (35, 35))
+        self.fire = pygame.transform.scale(load_image('fire-bg.png', -1), (50, 80))
+        self.water = pygame.transform.scale(load_image('water-bg.png', -1), (50, 80))
         self.current_file = ""
         self.floor()
 
@@ -96,13 +100,13 @@ class Level:
         try:
             name = prompt_file()
             if name:
-                self.current_file = name.split("/")[-1]
+                self.current_file = name
                 with open(name) as f:
                     text = f.read().split("\n")
                     for y in range(len(text[:text.index('')])):
                         row = list(text[y])
                         for x in range(len(row)):
-                            self.board[x][y] = int(row[x])
+                            self.board[x][y] = row[x]
                     for row in text[text.index('') + 1:-1]:
                         self.counter += 1
                         block_bar = [tuple(map(int, k.split(', ')))
@@ -119,10 +123,10 @@ class Level:
             pass
 
     def default_color(self):
-        self.clear_map_color = "white"
-        self.change_object_color = "white"
-        self.save_map_color = "white"
-        self.edit_map_color = "white"
+        self.clear_map_color = (255, 255, 255)
+        self.change_object_color = (255, 255, 255)
+        self.save_map_color = (255, 255, 255)
+        self.edit_map_color = (255, 255, 255)
         self.pause_flag = False
 
     # настройка внешнего вида
@@ -134,10 +138,10 @@ class Level:
     # создает пол на поле
     def floor(self):
         for y in range(len(self.board)):
-            self.board[y][-1] = 1
-            self.board[y][0] = 1
-        self.board[0] = [1 for _ in range(self.width)]
-        self.board[-1] = [1 for _ in range(self.width)]
+            self.board[y][-1] = 'a'
+            self.board[y][0] = 'a'
+        self.board[0] = ['a' for _ in range(self.width)]
+        self.board[-1] = ['a' for _ in range(self.width)]
 
     # отрисовывает карту
     def render(self, screen):
@@ -147,25 +151,31 @@ class Level:
             self.current_object = pygame.transform.scale(self.set_object(self.obj_index), (24, 24))
         for y in range(self.height):
             for x in range(self.width):
-                if self.board[x][y] == 1:
+                if self.board[x][y] == 'a':
                     screen.blit(self.stone, (x * 24 + 20, y * 24 + 48))
-                elif self.board[x][y] == 2:
+                elif self.board[x][y] == 'b':
                     screen.blit(self.bar, (x * 24 + 20, y * 24 + 48))
-                elif self.board[x][y] == 3:
+                elif self.board[x][y] == 'c':
                     screen.blit(self.stone, (x * 24 + 20, y * 24 + 48))
                     screen.blit(self.stone, ((x + 1) * 24 + 20, y * 24 + 48))
                     screen.blit(self.btn, (x * 24 + 20, y * 24 + 48))
-                elif self.board[x][y] == 4:
+                elif self.board[x][y] == 'd':
                     screen.blit(self.red_portal, (x * 24 + 20, y * 24 + 48))
-                elif self.board[x][y] == 5:
+                elif self.board[x][y] == 'e':
                     screen.blit(self.blue_portal, (x * 24 + 20, y * 24 + 48))
-                if self.board[x][y] in [6, 7, 8]:
+                elif self.board[x][y] == 'i':
+                    screen.blit(self.box, (x * 24 + 20, y * 24 + 48))
+                elif self.board[x][y] == 'j':
+                    screen.blit(self.fire, (x * 24 + 20, y * 24 + 48))
+                elif self.board[x][y] == 'k':
+                    screen.blit(self.water, (x * 24 + 20, y * 24 + 48))
+                if self.board[x][y] in ['f', 'g', 'h']:
                     screen.blit(self.stone, (x * 24 + 20, y * 24 + 48))
-                    if self.board[x][y] == 6:
+                    if self.board[x][y] == 'f':
                         screen.blit(self.water_block, (x * 24 + 20, y * 24 + 48))
-                    elif self.board[x][y] == 7:
+                    elif self.board[x][y] == 'g':
                         screen.blit(self.lava_block, (x * 24 + 20, y * 24 + 48))
-                    elif self.board[x][y] == 8:
+                    elif self.board[x][y] == 'h':
                         screen.blit(self.poison_block, (x * 24 + 20, y * 24 + 48))
 
         for y in range(self.height):
@@ -241,7 +251,7 @@ class Level:
         new_screen.fill("black")
         run = True
         font = pygame.font.SysFont('Segoe Print', 75)
-        text = font.render('Игра приостановлена', True, "white")
+        text = font.render('Игра приостановлена', True, (255, 255, 255))
         new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
         s_c_exit, s_c_what, s_c_music, s_c_play = False, False, False, False
         while run:
@@ -316,7 +326,7 @@ class Level:
     def clear(self):
         for y in range(self.height):
             for x in range(self.width):
-                self.board[x][y] = 0
+                self.board[x][y] = '`'
         self.floor()
         self.counter = 0
         self.cr_btn = False
@@ -329,12 +339,13 @@ class Level:
         for y in range(self.height):
             row = ""
             for x in range(self.width):
-                row += str(self.board[x][y])
+                row += self.board[x][y]
             field.append(row)
         if not self.current_file:
             name = prompt_file()
         else:
-            name = os.path.join("levels", self.current_file)
+            name = self.current_file
+            print(name)
         if name:
             with open(name, "w+", newline='\n') as f:
                 for row in field:
@@ -358,31 +369,32 @@ class Level:
             self.cr_btn = False
         elif self.cr_btn:
             self.create_btn(cell_coords, self.counter)
-        elif self.board[i][j] == 2 or self.board[i][j] == 3:
+        elif self.board[i][j] == 'b' or self.board[i][j] == 'c':
             self.delete_barrier_button(cell_coords)
-        elif self.board[i - 1][j] == 3:
+        elif self.board[i - 1][j] == 'c':
             self.delete_barrier_button((i - 1, j))
         elif self.obj_index == 1:
             self.counter += 1
             self.create_barrier(cell_coords, self.counter, key_for_bar)
-        elif self.obj_index in [3, 4]:
+        elif self.obj_index in [3, 4, 9, 10]:
             flag = True
             try:
                 for x in range(2):
                     for y in range(3):
-                        if self.board[i + x][j + y]:
-                            if self.board[i + x][j + y] not in [4, 5]:
-                                flag = False
+                        if self.board[i + x][j + y] != "`" or self.board[i + x][j + y] == chr(self.obj_index + 97):
+                            flag = False
             except IndexError:
-                pass
+                flag = False
             if flag:
-                if str(self.obj_index + 1) in str(self.board):
+                if chr(self.obj_index + 97) in str(self.board):
                     for row in range(len(self.board)):
-                        if self.obj_index + 1 in self.board[row]:
-                            self.board[row][self.board[row].index(self.obj_index + 1)] = 0
-                self.board[i][j] = self.obj_index + 1 - self.board[i][j]
+                        if chr(self.obj_index + 97) in self.board[row]:
+                            self.board[row][self.board[row].index(chr(self.obj_index + 97))] = '`'
+                self.board[i][j] = chr(self.obj_index + 97 - ord(self.board[i][j]) + 96)
+        elif self.obj_index in [9, 10]:
+            print(1)
         else:
-            self.board[i][j] = self.obj_index + 1 - self.board[i][j]
+            self.board[i][j] = chr(self.obj_index + 97 - ord(self.board[i][j]) + 96)
 
     # создание барьера
     def create_barrier(self, cell_coords, cnt, key_for_bar=None):
@@ -401,19 +413,24 @@ class Level:
                         return
                 except ValueError:
                     pass
-            if self.board[x + 1][y] + self.board[x + 2][y] + self.board[x + 3][y] + self.board[x + 4][y]:
-                return
-            if self.width - x <= 5:
+            try:
+                if self.board[x + 1][y] + self.board[x + 2][y] + \
+                        self.board[x + 3][y] + self.board[x + 4][y] != '````':
+                    return
+            except IndexError:
+                for i in range(5):
+                    self.board[39 - i][y] = 'b'
+            if self.width - x <= 6:
                 barriers[cnt] = []
                 keys_for_btns[cnt] = key_for_bar
                 for num in range(1, 6):
-                    self.board[self.width - num][y] = 2
+                    self.board[self.width - num][y] = 'b'
                     barriers[cnt].append((self.width - num, y))
             else:
                 barriers[cnt] = []
                 keys_for_btns[cnt] = key_for_bar
                 for num in range(5):
-                    self.board[x + num][y] = 2
+                    self.board[x + num][y] = 'b'
                     barriers[cnt].append((x + num, y))
         elif key_for_bar is False:
             for i in list(barriers.keys()):
@@ -428,19 +445,24 @@ class Level:
                         return
                 except ValueError:
                     pass
-            if self.board[x][y - 1] + self.board[x][y - 2] + self.board[x][y - 3] + self.board[x][y - 4]:
-                return
-            if self.height - y >= self.height - 5:
+            try:
+                if self.board[x][y - 1] + self.board[x][y - 2] \
+                        + self.board[x][y - 3] + self.board[x][y - 4] != '````':
+                    return
+            except IndexError:
+                for i in range(5):
+                    self.board[x][i + 1] = 'b'
+            if self.height - y >= self.height - 6:
                 barriers[cnt] = []
                 keys_for_btns[cnt] = key_for_bar
                 for num in range(5):
-                    self.board[x][num] = 2
+                    self.board[x][num] = 'b'
                     barriers[cnt].append((x, num))
             else:
                 barriers[cnt] = []
                 keys_for_btns[cnt] = key_for_bar
                 for num in range(5):
-                    self.board[x][y - num] = 2
+                    self.board[x][y - num] = 'b'
                     barriers[cnt].append((x, y - num))
         self.cr_btn = True
 
@@ -464,17 +486,17 @@ class Level:
                     return
             except ValueError:
                 pass
-        if self.board[x + 1][y]:
+        if self.board[x + 1][y] != "`":
             return
         if x + 1 == self.width:
-            self.board[x - 1][y] = 3
+            self.board[x - 1][y] = 'c'
             try:
                 buttons[cnt].extend([(x - 1, y)])
             except KeyError:
                 buttons[cnt] = [(x - 1, y)]
         else:
-            self.board[x][y] = 3
-            self.board[x + 1][y] = 0
+            self.board[x][y] = 'c'
+            self.board[x + 1][y] = '`'
             try:
                 buttons[cnt].extend([(x, y)])
             except KeyError:
@@ -485,9 +507,9 @@ class Level:
         for i in list(barriers.keys()):
             if any(coords == k for k in barriers[i]):
                 for x, y in barriers[i]:
-                    self.board[x][y] = 0
+                    self.board[x][y] = "`"
                 for x, y in buttons[i]:
-                    self.board[x][y] = 0
+                    self.board[x][y] = "`"
                 barriers.pop(i)
                 buttons.pop(i)
                 try:
@@ -498,9 +520,9 @@ class Level:
         for i in list(buttons.keys()):
             if any(coords == k for k in buttons[i]):
                 for x, y in barriers[i]:
-                    self.board[x][y] = 0
+                    self.board[x][y] = "`"
                 for x, y in buttons[i]:
-                    self.board[x][y] = 0
+                    self.board[x][y] = "`"
                 barriers.pop(i)
                 buttons.pop(i)
                 try:
@@ -530,6 +552,8 @@ class Level:
                         name.get_click(event.pos)
                 if event.type == pygame.MOUSEMOTION:
                     name.set_color(event.pos)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    self.stop_game()
             screen.fill((15, 82, 186))
             name.render(screen)
             pygame.display.flip()

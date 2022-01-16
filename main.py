@@ -30,8 +30,8 @@ class MainMenu:
         self.cnt, self.flag_sound = 0, False
         self.make_inscriptions(width, height)
 
-    def make_inscriptions(self, width, height, col_redactor='white',
-                          col_single='white', col_online='white', flag_settings=False):
+    def make_inscriptions(self, width, height, col_redactor=(255, 255, 255),
+                          col_single=(255, 255, 255), col_online=(255, 255, 255), flag_settings=False):
         self.start_screen(width, height)
         self.main_font = pygame.font.SysFont('Segoe Print', round(height // 5 * 0.3))
         if not self.flag_sound:
@@ -129,9 +129,8 @@ class MainMenu:
                 lvl = f"Уровень {name.split('.'[0][-1])}"
             g = Game(name)
             screen.fill("black")
-            g.objects()
             g.load_level()
-            g.mainloop(lvl)
+            g.mainloop()
 
     def creating_levels(self):
         level = Level(40, 31)
