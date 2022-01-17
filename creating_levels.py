@@ -5,6 +5,7 @@ import tkinter.filedialog
 barriers = {}
 buttons = {}
 keys_for_btns = {}
+sound_flag = False
 
 
 def prompt_file():
@@ -315,12 +316,15 @@ class Level:
             pygame.display.flip()
 
     def set_music(self):
+        global sound_flag
         if self.cnt_flag:
             self.flag_sound = True
             pygame.mixer.music.pause()
+            sound_flag = True
         else:
             self.flag_sound = False
             pygame.mixer.music.unpause()
+            sound_flag = False
 
     def do_info(self):
         screen = pygame.display.set_mode((1000, 840))

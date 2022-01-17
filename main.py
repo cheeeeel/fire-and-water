@@ -1,5 +1,8 @@
 import pygame
 import os
+
+import creating_levels
+import game
 from creating_levels import Level
 from game import Game, SelectLevel
 
@@ -83,6 +86,7 @@ class MainMenu:
         elif width // 75 <= x <= width // 75 + self.txt_redactor.get_width() \
                 and height * 0.78 <= y <= height * 0.84:
             self.creating_levels()
+            self.make_inscriptions(1000, 840)
         elif width // 75 <= x <= width // 75 + self.txt_online_btn.get_width() \
                 and height * 0.85 <= y <= height * 0.91:
             print("""Coming soon""")
@@ -130,13 +134,29 @@ class MainMenu:
             else:
                 lvl = f"Уровень {name.split('.'[0][-1])}"
             g = Game(name)
+            g.flag_sound = self.flag_sound
+            g.cnt_flag = self.cnt
             screen.fill("black")
             g.load_level()
             g.mainloop()
+            if game.sound_flag:
+                self.cnt = 1
+                self.flag_sound = True
+            else:
+                self.cnt = 0
+                self.flag_sound = False
 
     def creating_levels(self):
         level = Level(40, 31)
+        level.flag_sound = self.flag_sound
+        level.cnt_flag = self.cnt
         level.mainloop(level)
+        if creating_levels.sound_flag:
+            self.cnt = 1
+            self.flag_sound = True
+        else:
+            self.cnt = 0
+            self.flag_sound = False
 
 
 if __name__ == '__main__':

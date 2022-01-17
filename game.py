@@ -6,6 +6,7 @@ barriers_cords = []
 buttons_cords = []
 barriers = []
 buttons = []
+sound_flag = False
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 pygame.mixer.music.load("sounds/music.mp3")
@@ -486,12 +487,15 @@ class Game:
             pygame.display.flip()
 
     def set_music(self):
+        global sound_flag
         if self.cnt_flag:
             self.flag_sound = True
             pygame.mixer.music.pause()
+            sound_flag = True
         else:
             self.flag_sound = False
             pygame.mixer.music.unpause()
+            sound_flag = False
 
     def do_info(self):
         screen.fill("black")
