@@ -2,11 +2,13 @@ import pygame
 import os
 import tkinter.filedialog
 
+import creating_levels
+
 barriers_cords = []
 buttons_cords = []
 barriers = []
 buttons = []
-sound_flag = False
+sound_flag = None
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 pygame.mixer.music.load("sounds/music.mp3")
@@ -43,7 +45,7 @@ water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
 
 
-# Р·Р°РіСЂСѓР·РєР° С„РѕС‚Рѕ
+# загрузка фото
 def load_image(s, key=None):
     name = os.path.join("data", s)
     try:
@@ -79,7 +81,7 @@ def prompt_file():
     return file_name
 
 
-# РїРµСЂСЃРѕРЅР°Р¶С‹
+# персонажы
 class Heroes(pygame.sprite.Sprite):
     def __init__(self, x, y, hero):
         super().__init__(all_sprites)
@@ -94,8 +96,8 @@ class Heroes(pygame.sprite.Sprite):
             self.cut_sheet(load_image("water-sheet1.png", -1), 5, 2)
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
-        #self.rect = self.rect.move(x, y)
-#        self.rect = self.image.get_rect()
+        # self.rect = self.rect.move(x, y)
+        #        self.rect = self.image.get_rect()
         self.image = pygame.transform.scale(self.image, (50, 80))
         self.rect.x = x
         self.rect.y = y
@@ -128,7 +130,7 @@ class Heroes(pygame.sprite.Sprite):
         self.rect.y = y
         self.mask = pygame.mask.from_surface(self.image)
 
-    # РіСЂР°РІРёС‚Р°С†РёСЏ
+    # гравитация
     def update(self):
         if not pygame.sprite.spritecollideany(self, platforms) \
                 and not pygame.sprite.spritecollideany(self, boxes) and not \
@@ -166,14 +168,14 @@ class Heroes(pygame.sprite.Sprite):
                     self.on_button = False
                     self.index = (-100, -100)
 
-    # РґРІРёР¶РµРЅРёРµ РІРїСЂР°РІРѕ
+    # движение вправо
     def right(self):
         self.rect = self.rect.move(4, -5)
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
             self.rect = self.rect.move(200 / fps, 0)
         self.rect = self.rect.move(-4, 5)
 
-    # РґРІРёР¶РµРЅРёРµ РІР»РµРІРѕ
+    # движение влево
     def left(self):
         self.rect = self.rect.move(-4, -5)
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
@@ -189,7 +191,7 @@ class Heroes(pygame.sprite.Sprite):
         self.rect = self.rect.move(0, 5)
 
 
-# РїР»Р°С‚С„РѕСЂРјР°(СЃРѕСЃС‚Р°РІР»СЏРµС‚ СЃС‚РµРЅС‹, РїРѕР» СѓСЂРѕРІРЅСЏ, РѕСЃС‚Р°Р»СЊРЅС‹Рµ РїСЂРµРїСЏС‚СЃС‚РІРёСЏ)
+# платформа(составляет стены, пол уровня, остальные препятствия)
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, flag=False):
         super().__init__(all_sprites)
@@ -205,7 +207,7 @@ class Platform(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
-# РїР»РѕС‚РЅС‹Р№ Р±Р»РѕРє
+# плотный блок
 class Box(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(all_sprites)
@@ -258,7 +260,7 @@ class Box(pygame.sprite.Sprite):
         self.rect = self.rect.move(1, 5)
 
 
-# СЃРѕР·РґР°С‘С‚ Р±Р°СЂСЊРµСЂ
+# создаёт барьер
 class Barrier(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(all_sprites)
@@ -285,7 +287,7 @@ class Barrier(pygame.sprite.Sprite):
             self.rect.y += 120 / fps
 
 
-# РЎРѕР·РґР°РЅРёРµ РєРЅРѕРїРєРё, Р°РєС‚РёРІРёСЂСѓСЋС‰РµР№ РґРІРёР¶РµРЅРёСЏ Р±Р°СЂРµСЂР°
+# Создание кнопки, активирующей движения барера
 class Button(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -308,7 +310,7 @@ class Button(pygame.sprite.Sprite):
             self.rect.y -= 60 / fps
 
 
-# РљРѕРЅРµС‡РЅС‹Р№ РІС‹С…РѕРґ СЃ СѓСЂРѕРІРЅСЏ
+# Конечный выход с уровня
 class Portal(pygame.sprite.Sprite):
     def __init__(self, x, y, type_of):
         super().__init__()
@@ -350,7 +352,7 @@ class Liquids(pygame.sprite.Sprite):
     #         self.rect = self.rect.move(0, 200 / fps)
 
 
-# Р·Р°РіСЂСѓР·РєР° СѓСЂРѕРІРЅСЏ
+# загрузка уровня
 class Game:
     def __init__(self, name):
         self.name = name
@@ -492,10 +494,12 @@ class Game:
             self.flag_sound = True
             pygame.mixer.music.pause()
             sound_flag = True
+            creating_levels.sound_flag = True
         else:
             self.flag_sound = False
             pygame.mixer.music.unpause()
             sound_flag = False
+            creating_levels.sound_flag = False
 
     def do_info(self):
         screen.fill("black")
@@ -552,10 +556,6 @@ class Game:
                         Platform(20 + j * 24, 92 + i * 24, True)
                         if rows[i][j] == 'c':
                             Platform(20 + (j + 1) * 24, 92 + i * 24, True)
-                        elif rows[i][j] == 'f':
-                            Liquids(20 + j * 24, 80 + i * 24, "water")
-                        elif rows[i][j] == "g":
-                            Liquids(20 + j * 24, 80 + i * 24, "lava")
                         elif rows[i][j] == "h":
                             Liquids(20 + j * 24, 80 + i * 24, "poison")
             for block_cords in barriers_cords:
@@ -570,6 +570,12 @@ class Game:
                     btn = Button(20 + x * 24, 80 + y * 24)
                     block_btn.append(btn)
                 buttons.append(block_btn)
+            for i in range(len(rows[:rows.index('\n')])):
+                for j in range(len(rows[i])):
+                    if rows[i][j] == 'f':
+                        Liquids(20 + j * 24, 80 + i * 24, "water")
+                    elif rows[i][j] == "g":
+                        Liquids(20 + j * 24, 80 + i * 24, "lava")
 
     def mainloop(self):
         clock = pygame.time.Clock()
@@ -717,39 +723,6 @@ class Game:
                 screen.blit(setting_image, (920, 10))
                 pygame.display.flip()
                 clock.tick(fps)
-
-
-class SelectLevel:
-    def first_select(self):
-        size = 1000, 840
-        screen = pygame.display.set_mode(size)
-        screen.fill("black")
-        main_font = pygame.font.SysFont('Segoe Print', 60)
-
-        plot = main_font.render('Сюжетные уровни', True, (255, 255, 255))
-        plot_rect = plot.get_rect()
-        plot_rect.x = 100
-        plot_rect.y = 100
-
-        user_levels = main_font.render('Пользовательские уровни', True, (255, 255, 255))
-        user_levels_rect = user_levels.get_rect()
-        user_levels_rect.x = 100
-        user_levels_rect.y = 500
-
-        screen.blit(plot, (100, 100))
-        screen.blit(user_levels, (100, 500))
-        run = True
-        while run:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run = False
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1 and plot_rect.collidepoint(event.pos):
-                        return os.path.join("main_levels", "1.txt")
-                    elif event.button == 1 and user_levels_rect.collidepoint(event.pos):
-                        return prompt_file()
-
-            pygame.display.flip()
 
 # pl2 = Heroes(110, 670, "water")
 # pl1 = Heroes(50, 670, "fire")

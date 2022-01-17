@@ -2,10 +2,12 @@ import pygame
 import os
 import tkinter.filedialog
 
+import game
+
 barriers = {}
 buttons = {}
 keys_for_btns = {}
-sound_flag = False
+sound_flag = None
 
 
 def prompt_file():
@@ -321,10 +323,12 @@ class Level:
             self.flag_sound = True
             pygame.mixer.music.pause()
             sound_flag = True
+            game.sound_flag = True
         else:
             self.flag_sound = False
             pygame.mixer.music.unpause()
             sound_flag = False
+            game.sound_flag = True
 
     def do_info(self):
         screen = pygame.display.set_mode((1000, 840))

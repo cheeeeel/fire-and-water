@@ -4,7 +4,7 @@ import os
 import creating_levels
 import game
 from creating_levels import Level
-from game import Game, SelectLevel
+from game import Game
 
 
 def load_image(s, key=None):
@@ -31,10 +31,12 @@ def load_image(s, key=None):
 class MainMenu:
     def __init__(self, width, height):
         self.cnt, self.flag_sound = 0, False
+        self.run = False
         self.make_inscriptions(width, height)
 
-    def make_inscriptions(self, width, height, col_redactor=(255, 255, 255),
-                          col_single=(255, 255, 255), col_online=(255, 255, 255), flag_settings=False):
+    def make_inscriptions(self, width, height, col_redactor='white',
+                          col_single='white', col_online='white', flag_settings=False,
+                          main_lvls_col='white', user_lvls_col='white'):
         self.start_screen(width, height)
         self.main_font = pygame.font.SysFont('Segoe Print', round(height // 5 * 0.3))
         if not self.flag_sound:
@@ -49,11 +51,17 @@ class MainMenu:
         self.txt_online_btn = self.main_font.render('Игра по сети', True, col_online)
         screen.blit(self.txt_online_btn, (width // 75, height * 0.83))
 
-        self.txt_one_pc_btn = self.main_font.render('Один компьютер', True, col_single)
-        screen.blit(self.txt_one_pc_btn, (width // 75, height * 0.9))
-
         self.txt_redactor = self.main_font.render('Создать карту', True, col_redactor)
-        screen.blit(self.txt_redactor, (width // 75, height * 0.76))
+        screen.blit(self.txt_redactor, (width // 75, height * 0.9))
+
+        self.txt_one_pc_btn = self.main_font.render('Один компьютер', True, col_single)
+        screen.blit(self.txt_one_pc_btn, (width // 75, height * 0.76))
+        if self.run:
+            self.font = pygame.font.SysFont('Segoe Print', 40)
+            self.plot = self.font.render('Сюжетные уровни', True, main_lvls_col)
+            self.user_levels = self.font.render('Пользовательские', True, user_lvls_col)
+            screen.blit(self.plot, (550, 675))
+            screen.blit(self.user_levels, (550, 750))
 
         # all_title = fire + and + water
         font_for_title = pygame.font.SysFont('Comic Sans MS', round(height // 5 * 0.6))
@@ -80,18 +88,21 @@ class MainMenu:
         return image
 
     def go_next(self, x, y, width, height):
-        if width // 75 <= x <= width // 75 + self.txt_one_pc_btn.get_width() \
+        if width // 75 <= x <= width // 75 + self.txt_redactor.get_width() \
                 and height * 0.92 <= y <= height:
-            self.start_game()
-        elif width // 75 <= x <= width // 75 + self.txt_redactor.get_width() \
-                and height * 0.78 <= y <= height * 0.84:
+            self.run = False
             self.creating_levels()
-            self.make_inscriptions(1000, 840)
+        elif width // 75 <= x <= width // 75 + self.txt_one_pc_btn.get_width() \
+                and height * 0.78 <= y <= height * 0.84:
+            self.run = False
+            self.start_game()
         elif width // 75 <= x <= width // 75 + self.txt_online_btn.get_width() \
                 and height * 0.85 <= y <= height * 0.91:
+            self.run = False
             print("""Coming soon""")
         elif width * 0.89 <= x <= width * 0.89 + width // 10 \
                 and height // 75 <= y <= height // 75 + height // 8:
+            self.run = False
             self.cnt = (self.cnt + 1) % 2
             self.set_music()
 
@@ -99,19 +110,23 @@ class MainMenu:
         global save_pos_flag
         if self.cnt:
             self.flag_sound = True
+            game.sound_flag = True
+            creating_levels.sound_flag = True
             pygame.mixer.music.pause()
         else:
             self.flag_sound = False
+            game.sound_flag = False
+            creating_levels.sound_flag = False
             pygame.mixer.music.unpause()
         save_pos_flag = True
 
     def set_color(self, x, y, width, height):
-        if width // 75 <= x <= width // 75 + self.txt_one_pc_btn.get_width() \
+        if width // 75 <= x <= width // 75 + self.txt_redactor.get_width() \
                 and height * 0.92 <= y <= height * 0.99:
-            self.make_inscriptions(width, height, col_single='yellow')
-        elif width // 75 <= x <= width // 75 + self.txt_redactor.get_width() \
-                and height * 0.78 <= y <= height * 0.83:
             self.make_inscriptions(width, height, col_redactor='yellow')
+        elif width // 75 <= x <= width // 75 + self.txt_one_pc_btn.get_width() \
+                and height * 0.78 <= y <= height * 0.83:
+            self.make_inscriptions(width, height, col_single='yellow')
         elif width // 75 <= x <= width // 75 + self.txt_online_btn.get_width() \
                 and height * 0.85 <= y <= height * 0.9:
             self.make_inscriptions(width, height, col_online='yellow')
@@ -120,15 +135,21 @@ class MainMenu:
             self.make_inscriptions(width, height, flag_settings=True)
         else:
             self.make_inscriptions(width, height)
+        if self.run:
+            if 550 <= x <= 550 + self.user_levels.get_width() \
+                    and 750 <= y <= 750 + self.user_levels.get_width():
+                self.make_inscriptions(width, height, user_lvls_col='yellow')
+            elif 550 <= x <= 550 + self.plot.get_width() \
+                    and 675 <= y <= 675 + self.plot.get_width():
+                self.make_inscriptions(width, height, main_lvls_col='yellow')
 
     def start_screen(self, width, height):
         fon = pygame.transform.scale(background, (width, height))
         screen.blit(fon, (0, 0))
 
     def start_game(self):
-        name = SelectLevel().first_select()
+        name = self.first_select()
         if name:
-            print(name)
             if "user" in name:
                 lvl = f"Пользовательский уровень {name.split('_')[2][0]}"
             else:
@@ -139,24 +160,55 @@ class MainMenu:
             screen.fill("black")
             g.load_level()
             g.mainloop()
-            if game.sound_flag:
-                self.cnt = 1
-                self.flag_sound = True
-            else:
-                self.cnt = 0
-                self.flag_sound = False
+            if game.sound_flag is not None or creating_levels.sound_flag is not None:
+                if game.sound_flag and creating_levels.sound_flag:
+                    self.cnt = 1
+                    self.flag_sound = True
+                    game.sound_flag = True
+                    creating_levels.sound_flag = True
+                else:
+                    self.cnt = 0
+                    self.flag_sound = False
+                    game.sound_flag = False
+                    creating_levels.sound_flag = False
+            self.make_inscriptions(1000, 840)
+
+    def first_select(self):
+        self.run = True
+        self.make_inscriptions(1000, 840, col_single='yellow')
+        while self.run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    x, y = event.pos
+                    if event.button == 1 and 550 <= x <= 550 + self.plot.get_width() and \
+                            675 <= y <= 675 + self.plot.get_height():
+                        self.run = False
+                        return os.path.join("main_levels", "1.txt")
+                    elif event.button == 1 and 550 <= x <= 550 + self.user_levels.get_width() and \
+                            750 <= y <= 750 + self.user_levels.get_height():
+                        self.run = False
+                        return game.prompt_file()
+                    else:
+                        self.go_next(*event.pos, 1000, 840)
+                if event.type == pygame.MOUSEMOTION:
+                    self.set_color(*event.pos, 1000, 840)
+                    break
+            pygame.display.flip()
 
     def creating_levels(self):
         level = Level(40, 31)
         level.flag_sound = self.flag_sound
         level.cnt_flag = self.cnt
         level.mainloop(level)
-        if creating_levels.sound_flag:
-            self.cnt = 1
-            self.flag_sound = True
-        else:
-            self.cnt = 0
-            self.flag_sound = False
+        if game.sound_flag is not None or creating_levels.sound_flag is not None:
+            if game.sound_flag and creating_levels.sound_flag:
+                self.cnt = 1
+                self.flag_sound = True
+            else:
+                self.cnt = 0
+                self.flag_sound = False
 
 
 if __name__ == '__main__':
