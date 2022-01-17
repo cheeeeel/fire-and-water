@@ -42,7 +42,7 @@ water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
 
 
-# загрузка фото
+# Р·Р°РіСЂСѓР·РєР° С„РѕС‚Рѕ
 def load_image(s, key=None):
     name = os.path.join("data", s)
     try:
@@ -78,7 +78,7 @@ def prompt_file():
     return file_name
 
 
-# персонажы
+# РїРµСЂСЃРѕРЅР°Р¶С‹
 class Heroes(pygame.sprite.Sprite):
     def __init__(self, x, y, hero):
         super().__init__(all_sprites)
@@ -94,8 +94,8 @@ class Heroes(pygame.sprite.Sprite):
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
         #self.rect = self.rect.move(x, y)
-#        self.image = pygame.transform.scale(self.image, (50, 80))
-        self.rect = self.image.get_rect()
+#        self.rect = self.image.get_rect()
+        self.image = pygame.transform.scale(self.image, (50, 80))
         self.rect.x = x
         self.rect.y = y
         # self.mask = pygame.mask.from_surface(self.image)
@@ -120,12 +120,14 @@ class Heroes(pygame.sprite.Sprite):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
         self.image = pygame.transform.scale(self.image, (50, 80))
-        # self.rect = self.image.get_rect()
-        # self.rect.x = self.x
-        # self.rect.y = self.y
+        x = self.rect.x
+        y = self.rect.y
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
         self.mask = pygame.mask.from_surface(self.image)
 
-    # гравитация
+    # РіСЂР°РІРёС‚Р°С†РёСЏ
     def update(self):
         if not pygame.sprite.spritecollideany(self, platforms) \
                 and not pygame.sprite.spritecollideany(self, boxes) and not \
@@ -141,6 +143,7 @@ class Heroes(pygame.sprite.Sprite):
         if self.hero == "fire" and pygame.sprite.spritecollideany(self, red_portal) or \
                 self.hero == "water" and pygame.sprite.spritecollideany(self, blue_portal):
             self.in_portal = True
+
         else:
             self.in_portal = False
         if self.hero == "fire" and pygame.sprite.spritecollideany(self, water) or \
@@ -162,14 +165,14 @@ class Heroes(pygame.sprite.Sprite):
                     self.on_button = False
                     self.index = (-100, -100)
 
-    # движение вправо
+    # РґРІРёР¶РµРЅРёРµ РІРїСЂР°РІРѕ
     def right(self):
         self.rect = self.rect.move(4, -5)
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
             self.rect = self.rect.move(200 / fps, 0)
         self.rect = self.rect.move(-4, 5)
 
-    # движение влево
+    # РґРІРёР¶РµРЅРёРµ РІР»РµРІРѕ
     def left(self):
         self.rect = self.rect.move(-4, -5)
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
@@ -185,7 +188,7 @@ class Heroes(pygame.sprite.Sprite):
         self.rect = self.rect.move(0, 5)
 
 
-# платформа(составляет стены, пол уровня, остальные препятствия)
+# РїР»Р°С‚С„РѕСЂРјР°(СЃРѕСЃС‚Р°РІР»СЏРµС‚ СЃС‚РµРЅС‹, РїРѕР» СѓСЂРѕРІРЅСЏ, РѕСЃС‚Р°Р»СЊРЅС‹Рµ РїСЂРµРїСЏС‚СЃС‚РІРёСЏ)
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, flag=False):
         super().__init__(all_sprites)
@@ -201,7 +204,7 @@ class Platform(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
-# плотный блок
+# РїР»РѕС‚РЅС‹Р№ Р±Р»РѕРє
 class Box(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(all_sprites)
@@ -254,7 +257,7 @@ class Box(pygame.sprite.Sprite):
         self.rect = self.rect.move(1, 5)
 
 
-# создаёт барьер
+# СЃРѕР·РґР°С‘С‚ Р±Р°СЂСЊРµСЂ
 class Barrier(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(all_sprites)
@@ -281,7 +284,7 @@ class Barrier(pygame.sprite.Sprite):
             self.rect.y += 120 / fps
 
 
-# Создание кнопки, активирующей движения барера
+# РЎРѕР·РґР°РЅРёРµ РєРЅРѕРїРєРё, Р°РєС‚РёРІРёСЂСѓСЋС‰РµР№ РґРІРёР¶РµРЅРёСЏ Р±Р°СЂРµСЂР°
 class Button(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -304,7 +307,7 @@ class Button(pygame.sprite.Sprite):
             self.rect.y -= 60 / fps
 
 
-# Конечный выход с уровня
+# РљРѕРЅРµС‡РЅС‹Р№ РІС‹С…РѕРґ СЃ СѓСЂРѕРІРЅСЏ
 class Portal(pygame.sprite.Sprite):
     def __init__(self, x, y, type_of):
         super().__init__()
@@ -346,7 +349,7 @@ class Liquids(pygame.sprite.Sprite):
     #         self.rect = self.rect.move(0, 200 / fps)
 
 
-# загрузка уровня
+# Р·Р°РіСЂСѓР·РєР° СѓСЂРѕРІРЅСЏ
 class Game:
     def __init__(self, name):
         self.name = name
@@ -574,7 +577,7 @@ class Game:
         font = pygame.font.SysFont('Segoe Print', 30)
         level_text = font.render('Уровень 1', True, (255, 255, 255))
         screen.blit(level_text, (20, 10))
-        anim = pygame.USEREVENT + 1
+        anim = pygame.USEREVENT + 3
         pygame.time.set_timer(anim, 100)
         while self.running:
             for event in pygame.event.get():
@@ -621,8 +624,9 @@ class Game:
                         return
                 if event.type == anim:
                     pl1.animation()
+                    pygame.time.set_timer(anim, 100)
+
                     pl2.animation()
-                    pygame.display.flip()
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
                 pl1.right()
