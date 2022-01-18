@@ -351,7 +351,7 @@ class Level:
         btn = pygame.transform.scale(self.btn, (50, 25))
         text = font.render('активирующая барьер кнопка, при нажатии на неё немного опускается', True, (255, 255, 255))
         screen.blit(text, (75, 140))
-        text = font.render('можно поставить, после постановки барьера \
+        text = font.render('можно поставить после постановки барьера \
 неограниченное кол-во раз, ПКМ - конец', True, (255, 255, 255))
         screen.blit(text, (75, 160))
         screen.blit(btn, (10, 150))

@@ -32,6 +32,7 @@ class MainMenu:
     def __init__(self, width, height):
         self.cnt, self.flag_sound = 0, False
         self.run = False
+        self.save_pos_flag = False
         self.make_inscriptions(width, height)
 
     def make_inscriptions(self, width, height, col_redactor='white',
@@ -107,7 +108,6 @@ class MainMenu:
             self.set_music()
 
     def set_music(self):
-        global save_pos_flag
         if self.cnt:
             self.flag_sound = True
             game.sound_flag = True
@@ -118,7 +118,7 @@ class MainMenu:
             game.sound_flag = False
             creating_levels.sound_flag = False
             pygame.mixer.music.unpause()
-        save_pos_flag = True
+        self.save_pos_flag = True
 
     def set_color(self, x, y, width, height):
         if width // 75 <= x <= width // 75 + self.txt_redactor.get_width() \
@@ -134,6 +134,7 @@ class MainMenu:
                 and height // 75 <= y <= height // 75 + height // 8:
             self.make_inscriptions(width, height, flag_settings=True)
         else:
+            self.save_pos_flag = False
             self.make_inscriptions(width, height)
         if self.run:
             if 550 <= x <= 550 + self.user_levels.get_width() \
@@ -230,7 +231,7 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 main.go_next(*event.pos, *size)
-                if not save_pos_flag:
+                if not main.save_pos_flag:
                     main.make_inscriptions(*size)
                 else:
                     main.make_inscriptions(*size, flag_settings=True)
