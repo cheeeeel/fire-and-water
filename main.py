@@ -70,7 +70,7 @@ class MainMenu:
         screen.blit(fire, ((width - fire.get_width() * 2.15) // 2, round(height // 2.7)))
         _and_ = font_for_title.render('и', True, (255, 255, 255))
         screen.blit(_and_, (width // 2, round(height // 2.7)))
-        water = font_for_title.render('Вода', True, (0, 0, 255))
+        water = font_for_title.render('Вода', True, (0, 100, 255))
         screen.blit(water, ((width + water.get_width() * 0.7) // 2, round(height // 2.7)))
 
     def load_image(self, s, key=None):
@@ -180,7 +180,7 @@ class MainMenu:
         while self.run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.run = False
+                    exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
                     if event.button == 1 and 550 <= x <= 550 + self.plot.get_width() and \
@@ -228,7 +228,7 @@ if __name__ == '__main__':
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 main.go_next(*event.pos, *size)
                 if not main.save_pos_flag:

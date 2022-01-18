@@ -220,7 +220,7 @@ class Level:
                     self.obj_index += 1
             elif 730 < x < 730 + self.save_map.get_width():
                 self.save()
-        elif 0 < y < self.edit_map.get_height() - 15 and 10 < x < self.edit_map.get_width():
+        elif 5 < y < 5 + self.edit_map.get_height() and 10 < x < self.edit_map.get_width():
             self.edit_board()
         elif 940 <= x <= 980 and 5 <= y <= 45:
             self.stop_game()
@@ -241,7 +241,7 @@ class Level:
         elif 730 <= x <= 730 + self.save_map.get_width() and \
                 780 <= y <= 780 + self.clear_map.get_height():
             self.save_map_color = "yellow"
-        elif 0 <= y <= self.edit_map.get_height() - 15 and \
+        elif 5 <= y <= self.edit_map.get_height() + 5 and \
                 10 <= x <= self.edit_map.get_width():
             self.edit_map_color = "yellow"
         elif 940 <= x <= 980 and 5 <= y <= 45:
@@ -260,7 +260,7 @@ class Level:
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    run = False
+                    exit()
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     if 80 <= x <= 230 and 490 <= y <= 640:
@@ -289,7 +289,7 @@ class Level:
                         return
                     elif 540 <= x <= 690 and 490 <= y <= 690:
                         self.do_info()
-                        new_screen.fill("black")
+                        new_screen.fill((0, 0, 0))
                         new_screen.blit(text, ((1000 - text.get_width()) // 2, 50))
                         s_c_what = False
                         break
@@ -405,18 +405,17 @@ class Level:
 
         w_woman = pygame.transform.scale(self.water, (50, 80))
         text = font.render('один из главных персонажей, может быть только один', True, (255, 255, 255))
-        screen.blit(text, (75, 735))
+        screen.blit(text, (75, 745))
         screen.blit(w_woman, (10, 730))
 
         close_window = pygame.transform.scale(load_image('close.png', -1), (75, 75))
         close_window_mouse = pygame.transform.scale(load_image('close_mouse.png', -1), (75, 75))
         screen.blit(close_window, (900, 25))
         run = True
-
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    run = False
+                    exit()
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     if 900 <= x <= 975 and 25 <= y <= 100:
@@ -427,6 +426,8 @@ class Level:
                     x, y = event.pos
                     if 900 <= x <= 975 and 25 <= y <= 100 and event.button == 1:
                         return
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    return
             pygame.display.flip()
 
     # очищает поле
@@ -645,7 +646,7 @@ class Level:
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
+                    exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if name.cr_btn and event.button == 3:
                         name.flag_end = True

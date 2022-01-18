@@ -433,7 +433,7 @@ class Game:
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    run = False
+                    exit()
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     if 100 <= x <= 300 and 290 <= y <= 490:
@@ -515,63 +515,92 @@ class Game:
         screen.fill("black")
         pygame.display.flip()
 
-        stone = pygame.transform.scale(self.PL, (40, 40))
+        font = pygame.font.SysFont('Segoe print', 30)
+        text = font.render('Информация об объектах', True, (153, 255, 153))
+        screen.blit(text, (500 - text.get_width() // 2, 10))
+
+        stone = pygame.transform.scale(self.PL, (30, 30))
         font = pygame.font.SysFont('Segoe print', 20)
         text = font.render('платформа, на которой можно стоять', True, (255, 255, 255))
-        screen.blit(text, (75, 15))
-        screen.blit(stone, (10, 10))
+        screen.blit(text, (75, 60))
+        screen.blit(stone, (20, 60))
 
-        bar = pygame.transform.scale(self.bar, (40, 40))
+        bar = pygame.transform.scale(self.bar, (30, 30))
         font = pygame.font.SysFont('Segoe print', 20)
         text = font.render('движущийся барьер, который можно активировать кнопкой', True, (255, 255, 255))
-        screen.blit(text, (75, 65))
-        screen.blit(bar, (10, 60))
+        screen.blit(text, (75, 100))
+        screen.blit(bar, (20, 100))
 
-        btn = pygame.transform.scale(self.btn, (40, 20))
+        btn = pygame.transform.scale(self.btn, (30, 15))
         text = font.render('активирующая барьер кнопка', True, (255, 255, 255))
-        screen.blit(text, (75, 125))
-        screen.blit(btn, (10, 135))
+        screen.blit(text, (75, 140))
+        screen.blit(btn, (20, 150))
 
-        por_fire = pygame.transform.scale(self.r_portal, (40, 40))
+        por_fire = pygame.transform.scale(self.r_portal, (30, 30))
         text = font.render('портал завершения уровня для огня', True, (255, 255, 255))
-        screen.blit(text, (75, 185))
-        screen.blit(por_fire, (10, 180))
+        screen.blit(text, (75, 180))
+        screen.blit(por_fire, (20, 180))
 
-        por_water = pygame.transform.scale(self.b_portal, (40, 40))
+        por_water = pygame.transform.scale(self.b_portal, (30, 30))
         text = font.render('портал завершения уровня для воды', True, (255, 255, 255))
-        screen.blit(text, (75, 245))
-        screen.blit(por_water, (10, 240))
+        screen.blit(text, (75, 220))
+        screen.blit(por_water, (20, 220))
 
-        water = pygame.transform.scale(self.w_b, (40, 40))
+        water = pygame.transform.scale(self.w_b, (30, 30))
         text = font.render('блок воды, при попадании в который персонаж огоня умирает', True, (255, 255, 255))
-        screen.blit(text, (75, 305))
-        screen.blit(water, (10, 300))
+        screen.blit(text, (75, 260))
+        screen.blit(water, (20, 260))
 
-        lava = pygame.transform.scale(self.f_b, (40, 40))
+        lava = pygame.transform.scale(self.f_b, (30, 30))
         text = font.render('блок лавы, при попадании в который персонаж воды умирает', True, (255, 255, 255))
-        screen.blit(text, (75, 365))
-        screen.blit(lava, (10, 360))
+        screen.blit(text, (75, 300))
+        screen.blit(lava, (20, 300))
 
-        poison = pygame.transform.scale(self.p_b, (40, 40))
+        poison = pygame.transform.scale(self.p_b, (30, 30))
         text = font.render('блок яда, при попадании в который любой из персонажей умирает', True, (255, 255, 255))
-        screen.blit(text, (75, 425))
-        screen.blit(poison, (10, 420))
+        screen.blit(text, (75, 340))
+        screen.blit(poison, (20, 340))
 
-        box = pygame.transform.scale(self.box, (40, 40))
+        box = pygame.transform.scale(self.box, (30, 30))
         text = font.render('объект, котрый можно толкать при взаимодействии', True, (255, 255, 255))
-        screen.blit(text, (75, 485))
-        screen.blit(box, (10, 480))
+        screen.blit(text, (75, 380))
+        screen.blit(box, (20, 380))
 
-        f_man = pygame.transform.scale(self.fire, (50, 80))
+        f_man = pygame.transform.scale(self.fire, (30, 50))
+        font = pygame.font.SysFont('Segoe print', 60)
+        text = font.render('главные герои', True, (255, 255, 255))
+        screen.blit(text, (75, 420))
+        screen.blit(f_man, (20, 420))
+
+        w_woman = pygame.transform.scale(self.water, (30, 50))
+        screen.blit(w_woman, (20, 480))
+
         font = pygame.font.SysFont('Segoe print', 30)
-        text = font.render('один из главных персонажей, может быть только один', True, (255, 255, 255))
-        screen.blit(text, (75, 550))
-        screen.blit(f_man, (10, 540))
+        text = font.render('Управление', True, (153, 255, 153))
+        screen.blit(text, (500 - text.get_width() // 2, 530))
 
-        w_woman = pygame.transform.scale(self.water, (50, 80))
-        text = font.render('один из главных персонажей, может быть только один', True, (255, 255, 255))
-        screen.blit(text, (75, 640))
-        screen.blit(w_woman, (10, 630))
+        text = font.render('Вода', True, (0, 100, 255))
+        screen.blit(text, (250 - text.get_width() // 2, 560))
+        text = font.render('Огонь', True, (255, 100, 0))
+        screen.blit(text, (750 - text.get_width() // 2, 560))
+
+        text = font.render('-->  движение вправо', True, (255, 255, 255))
+        screen.blit(text, (20, 620))
+        text = font.render('<--  движение влево', True, (255, 255, 255))
+        screen.blit(text, (20, 670))
+        text = font.render('|    прыжок', True, (255, 255, 255))
+        screen.blit(text, (40, 720))
+        text = font.render('^', True, (255, 255, 255))
+        screen.blit(text, (36, 705))
+
+        text = font.render('D  движение вправо', True, (255, 255, 255))
+        screen.blit(text, (650, 620))
+        text = font.render('A  движение влево', True, (255, 255, 255))
+        screen.blit(text, (650, 670))
+        text = font.render('W  прыжок', True, (255, 255, 255))
+        screen.blit(text, (650, 720))
+        text = font.render('ESC пауза', True, (255, 0, 0))
+        screen.blit(text, (500 - text.get_width() // 2, 770))
 
         close_window = pygame.transform.scale(load_image('close.png', -1), (75, 75))
         close_window_mouse = pygame.transform.scale(load_image('close_mouse.png', -1), (75, 75))
@@ -580,7 +609,7 @@ class Game:
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    run = False
+                    exit()
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     if 900 <= x <= 975 and 25 <= y <= 100:
@@ -591,6 +620,8 @@ class Game:
                     x, y = event.pos
                     if 900 <= x <= 975 and 25 <= y <= 100 and event.button == 1:
                         return
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    return
             pygame.display.flip()
 
     def load_level(self):
@@ -661,7 +692,7 @@ class Game:
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
+                    exit()
                 if event.type == pygame.MOUSEMOTION:
                     if 930 <= event.pos[0] <= 990 and 10 <= event.pos[1] <= 70:
                         set_pause = True
@@ -670,7 +701,9 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 \
                         and 930 <= event.pos[0] <= 990 and 10 <= event.pos[1] <= 70:
                     self.pause()
+                    set_pause = False
                     if self.running:
+                        screen.fill((0, 0, 0))
                         screen.blit(level_text, (20, 10))
                     else:
                         return
@@ -698,6 +731,7 @@ class Game:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.pause()
                     if self.running:
+                        screen.fill((0, 0, 0))
                         screen.blit(level_text, (20, 10))
                     else:
                         return
