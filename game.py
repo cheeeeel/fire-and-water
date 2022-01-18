@@ -370,6 +370,11 @@ class Game:
         # self.poison = pygame.sprite.Group()
         self.cnt_flag = 0
         self.flag_sound = False
+        self.final_screen = False
+        self.col_retry = False
+        self.col_set_lvl = False
+        self.col_next = False
+        self.col_exit = False
         self.water_jumping_start = pygame.USEREVENT + 1
         self.fire_jumping_start = pygame.USEREVENT + 2
         self.barriers_cords = []
@@ -378,12 +383,12 @@ class Game:
         self.buttons = []
         self.fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         self.PL = load_image("stone.png")
-        self.exit_mouse = load_image('exit_mouse.png', -1)
-        self.exit = load_image('exit.png', -1)
+        self.exit_mouse = pygame.transform.scale(load_image('exit_mouse.png', -1), (150, 150))
+        self.exit = pygame.transform.scale(load_image('exit.png', -1), (150, 150))
         self.play_mouse = load_image('play_mouse.png', -1)
         self.play = load_image('play.png', -1)
-        self.retry_mouse = load_image('retry_mouse.png', -1)
-        self.retry = load_image('retry.png', -1)
+        self.retry_mouse = pygame.transform.scale(load_image('retry_mouse.png', -1), (150, 150))
+        self.retry = pygame.transform.scale(load_image('retry.png', -1), (150, 150))
         self.what_mouse = load_image('how_to_play_mouse.png', -1)
         self.what = load_image('how_to_play.png', -1)
         self.sound_on_mouse = load_image('music_on_mouse.png', -1)
@@ -400,6 +405,10 @@ class Game:
         self.box = load_image('box.png', -1)
         self.fire = load_image('fire-bg.png', -1)
         self.water = load_image('water-bg.png', -1)
+        self.set_lvl = pygame.transform.scale(load_image('set_lvl.png', -1), (150, 150))
+        self.set_lvl_mouse = pygame.transform.scale(load_image('set_lvl_mouse.png', -1), (150, 150))
+        self.next_lvl = pygame.transform.scale(load_image('next_lvl.png', -1), (150, 150))
+        self.next_lvl_mouse = pygame.transform.scale(load_image('next_lvl_mouse.png', -1), (150, 150))
 
         # self.pl2 = Heroes(110, 670, "water")
         # self.pl1 = Heroes(50, 670, "fire")
@@ -694,19 +703,38 @@ class Game:
                 if event.type == pygame.QUIT:
                     exit()
                 if event.type == pygame.MOUSEMOTION:
-                    if 930 <= event.pos[0] <= 990 and 10 <= event.pos[1] <= 70:
+                    x, y = event.pos
+                    if 930 <= x <= 990 and 10 <= y <= 70:
                         set_pause = True
                     else:
                         set_pause = False
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 \
-                        and 930 <= event.pos[0] <= 990 and 10 <= event.pos[1] <= 70:
-                    self.pause()
-                    set_pause = False
-                    if self.running:
-                        screen.fill((0, 0, 0))
-                        screen.blit(level_text, (20, 10))
-                    else:
-                        return
+                    if self.final_screen:
+                        if 80 <= x <= 230 and 490 <= y <= 640:
+                            self.col_exit = True
+                        elif 310 <= x <= 460 and 490 <= y <= 640:
+                            self.col_retry = True
+                        elif 540 <= x <= 690 and 490 <= y <= 640:
+                            self.col_set_lvl = True
+                        elif 770 <= x <= 920 and 490 <= y <= 640:
+                            self.col_next = True
+                        else:
+                            self.col_exit = False
+                            self.col_set_lvl = False
+                            self.col_next = False
+                            self.col_retry = False
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    x, y = event.pos
+                    if 930 <= x <= 990 and 10 <= y <= 70:
+                        self.pause()
+                        set_pause = False
+                        if self.running:
+                            screen.fill((0, 0, 0))
+                            screen.blit(level_text, (20, 10))
+                        else:
+                            return
+                    if self.final_screen:
+                        if 80 <= x <= 230 and 490 <= y <= 640:
+                            return
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         pygame.time.set_timer(water_jumping_start, 650)
@@ -797,26 +825,20 @@ class Game:
             pl2.music_flag = self.cnt_flag
             if (not pl1.music_flag or not pl2.music_flag) and (pl1.lose or pl2.lose):
                 death.play()
-
             if pl1.lose or pl2.lose:
                 screen.fill("black")
-                main_font = pygame.font.SysFont('Segoe Print', 60)
-                lose = main_font.render("Вы проиграли!", True, (255, 255, 255))
-                pygame.mixer.music.pause()
-                screen.blit(lose, (300, 400))
+                self.create_btns(['Попробуйте снова'])
                 pygame.display.flip()
+                self.final_screen = True
             elif pl1.in_portal and pl2.in_portal:
                 screen.fill("black")
-                main_font = pygame.font.SysFont('Segoe Print', 60)
                 if not self.cnt_flag:
                     win_end.play()
                     pygame.mixer.music.pause()
                 # win_end.set_volume(0)
-                win = main_font.render("Mission completed", True, (255, 255, 255))
-                screen.blit(win, (300, 400))
-                win = main_font.render("+respect", True, (255, 255, 255))
-                screen.blit(win, (330, 500))
+                self.create_btns(["Mission completed", "respect+"])
                 pygame.display.flip()
+                self.final_screen = True
             else:
                 screen.blit(fon, (44, 104))
                 all_sprites.update()
@@ -826,6 +848,17 @@ class Game:
                 screen.blit(setting_image, (920, 10))
                 pygame.display.flip()
                 clock.tick(fps)
+
+    def create_btns(self, printings):
+        font = pygame.font.SysFont('Segoe print', 75)
+        for i in range(len(printings)):
+            text = font.render(printings[i], True, (254, 150, 0))
+            screen.blit(text, (500 - text.get_width() // 2, 50 + i * 100))
+        screen.blit(self.exit_mouse if self.col_exit else self.exit, (80, 490))
+        screen.blit(self.retry_mouse if self.col_retry else self.retry, (310, 490))
+        screen.blit(self.set_lvl_mouse if self.col_set_lvl else self.set_lvl, (540, 490))
+        screen.blit(self.next_lvl_mouse if self.col_next else self.next_lvl, (770, 490))
+
 
 # pl2 = Heroes(110, 670, "water")
 # pl1 = Heroes(50, 670, "fire")
