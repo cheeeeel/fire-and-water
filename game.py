@@ -390,6 +390,8 @@ class Game:
         self.next_lvl_mouse = pygame.transform.scale(load_image('next_lvl_mouse.png', -1), (150, 150))
         self.close = pygame.transform.scale(load_image('close.png', -1), (75, 75))
         self.close_mouse = pygame.transform.scale(load_image('close_mouse.png', -1), (75, 75))
+        self.pause = load_image('pause.png', -1)
+        self.pause_mouse = load_image('pause_mouse.png', -1)
 
     def default(self):
         all_sprites.empty()
@@ -404,7 +406,7 @@ class Game:
         lava.empty()
         poison.empty()
 
-    def pause(self):
+    def stop_game(self):
         new_screen = pygame.display.set_mode((1000, 840))
         new_screen.fill("black")
         run = True
@@ -568,6 +570,10 @@ class Game:
             pygame.display.flip()
 
     def load_level(self):
+        screen.fill('black')
+        font = pygame.font.SysFont('Segoe Print', 30)
+        level_text = font.render('Уровень 1', True, (255, 255, 255))
+        screen.blit(level_text, (20, 10))
         with open(self.name) as f:
             rows = f.readlines()
             for row in rows[rows.index('\n') + 1:]:
@@ -623,10 +629,10 @@ class Game:
     def mainloop(self):
         self.running = True
         set_pause = False
-        fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         font = pygame.font.SysFont('Segoe Print', 30)
         level_text = font.render('Уровень 1', True, (255, 255, 255))
         screen.blit(level_text, (20, 10))
+        fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         anim = pygame.USEREVENT + 3
         pygame.time.set_timer(anim, 100)
         while self.running:
@@ -648,7 +654,7 @@ class Game:
                     x, y = event.pos
                     if not (self.final_screen_win or self.final_screen_lose):
                         if 930 <= x <= 990 and 10 <= y <= 70:
-                            self.pause()
+                            self.stop_game()
                             set_pause = False
                             if self.running:
                                 screen.fill((0, 0, 0))
@@ -662,7 +668,12 @@ class Game:
                                 pygame.mixer.music.unpause()
                             return
                         elif 310 <= x <= 460 and 490 <= y <= 640:
+                            win_end.stop()
+                            if not sound_flag:
+                                pygame.mixer.music.unpause()
+                            self.final_screen_win = False
                             self.default()
+                            self.default_color_w_l()
                             self.load_level()
                         elif 540 <= x <= 690 and 490 <= y <= 640:
                             """что-то с меню"""
@@ -675,7 +686,12 @@ class Game:
                                 pygame.mixer.music.unpause()
                             return
                         elif 425 <= x <= 575 and 490 <= y <= 640:
+                            death.stop()
+                            if not sound_flag:
+                                pygame.mixer.music.unpause()
+                            self.final_screen_lose = False
                             self.default()
+                            self.default_color_w_l()
                             self.load_level()
                         elif 712 <= x <= 862 and 490 <= y <= 640:
                             """что-то с меню"""
@@ -690,6 +706,13 @@ class Game:
                         if not self.cnt_flag:
                             jump.play()
                         pl1.jump_flag = True
+                    if event.key == pygame.K_ESCAPE:
+                        self.stop_game()
+                        if self.running:
+                            screen.fill((0, 0, 0))
+                            screen.blit(level_text, (20, 10))
+                        else:
+                            return
                 if event.type == fire_jumping_start:
                     if not pl1.jump_flag:
                         pygame.time.set_timer(fire_jumping_start, 0)
@@ -700,13 +723,6 @@ class Game:
                         pygame.time.set_timer(water_jumping_start, 0)
                     else:
                         pl2.jump_flag = False
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    self.pause()
-                    if self.running:
-                        screen.fill((0, 0, 0))
-                        screen.blit(level_text, (20, 10))
-                    else:
-                        return
                 if event.type == anim:
                     pl1.animation()
                     pygame.time.set_timer(anim, 100)
@@ -791,8 +807,8 @@ class Game:
                 screen.blit(fon, (44, 104))
                 all_sprites.update()
                 all_sprites.draw(screen)
-                file = load_image("pause.png" if not set_pause else "pause_mouse.png", -1)
-                setting_image = pygame.transform.scale(file, (60, 60))
+                setting_image = pygame.transform.scale(self.pause
+                                                       if not set_pause else self.pause_mouse, (60, 60))
                 screen.blit(setting_image, (920, 10))
                 pygame.display.flip()
                 clock.tick(fps)
