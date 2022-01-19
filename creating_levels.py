@@ -389,9 +389,9 @@ class Level:
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     if 900 <= x <= 975 and 25 <= y <= 100:
-                        screen.blit(close_window_mouse, (900, 25))
+                        screen.blit(self.exit_info_mouse, (900, 25))
                     else:
-                        screen.blit(close_window, (900, 25))
+                        screen.blit(self.exit_info, (900, 25))
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
                     if 900 <= x <= 975 and 25 <= y <= 100 and event.button == 1:

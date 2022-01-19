@@ -346,7 +346,8 @@ class Game:
         self.running = True
         self.cnt_flag = 0
         self.flag_sound = False
-        self.final_screen = False
+        self.final_screen_win = False
+        self.final_screen_lose = False
         self.col_retry = False
         self.col_set_lvl = False
         self.col_next = False
@@ -445,7 +446,9 @@ class Game:
                     elif 400 <= x <= 600 and 290 <= y <= 490:
                         run = False
                     elif 700 <= x <= 900 and 290 <= y <= 490:
-                        """self.load_level()"""
+                        self.default()
+                        self.load_level()
+                        return
                     elif 550 <= x <= 750 and 540 <= y <= 740:
                         self.cnt_flag = (self.cnt_flag + 1) % 2
                         self.set_music()
@@ -632,40 +635,50 @@ class Game:
                     exit()
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
-                    if 930 <= x <= 990 and 10 <= y <= 70:
-                        set_pause = True
-                    else:
-                        set_pause = False
-                    if self.final_screen:
-                        if 80 <= x <= 230 and 490 <= y <= 640:
-                            self.col_exit = True
-                        elif 310 <= x <= 460 and 490 <= y <= 640:
-                            self.col_retry = True
-                        elif 540 <= x <= 690 and 490 <= y <= 640:
-                            self.col_set_lvl = True
-                        elif 770 <= x <= 920 and 490 <= y <= 640:
-                            self.col_next = True
+                    if not (self.final_screen_win or self.final_screen_lose):
+                        if 930 <= x <= 990 and 10 <= y <= 70:
+                            set_pause = True
                         else:
-                            self.col_exit = False
-                            self.col_set_lvl = False
-                            self.col_next = False
-                            self.col_retry = False
+                            set_pause = False
+                    if self.final_screen_win:
+                        self.set_col_win(x, y)
+                    elif self.final_screen_lose:
+                        self.set_col_lose(x, y)
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     x, y = event.pos
-                    if 930 <= x <= 990 and 10 <= y <= 70:
-                        self.pause()
-                        set_pause = False
-                        if self.running:
-                            screen.fill((0, 0, 0))
-                            screen.blit(level_text, (20, 10))
-                        else:
-                            return
-                    if self.final_screen:
+                    if not (self.final_screen_win or self.final_screen_lose):
+                        if 930 <= x <= 990 and 10 <= y <= 70:
+                            self.pause()
+                            set_pause = False
+                            if self.running:
+                                screen.fill((0, 0, 0))
+                                screen.blit(level_text, (20, 10))
+                            else:
+                                return
+                    if self.final_screen_win:
                         if 80 <= x <= 230 and 490 <= y <= 640:
                             win_end.stop()
                             if not sound_flag:
                                 pygame.mixer.music.unpause()
                             return
+                        elif 310 <= x <= 460 and 490 <= y <= 640:
+                            self.default()
+                            self.load_level()
+                        elif 540 <= x <= 690 and 490 <= y <= 640:
+                            """что-то с меню"""
+                        elif 770 <= x <= 920 and 490 <= y <= 640:
+                            """что-то со следующим уровнем"""
+                    elif self.final_screen_lose:
+                        if 137 <= x <= 287 and 490 <= y <= 640:
+                            death.stop()
+                            if not sound_flag:
+                                pygame.mixer.music.unpause()
+                            return
+                        elif 425 <= x <= 575 and 490 <= y <= 640:
+                            self.default()
+                            self.load_level()
+                        elif 712 <= x <= 862 and 490 <= y <= 640:
+                            """что-то с меню"""
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         pygame.time.set_timer(water_jumping_start, 650)
@@ -754,27 +767,26 @@ class Game:
             pl1.music_flag = self.cnt_flag
             pl2.music_flag = self.cnt_flag
             if (not pl1.music_flag or not pl2.music_flag) and (pl1.lose or pl2.lose):
-                death.play()
                 pl1.music_flag = True
                 pl2.music_flag = True
-                pl1.lose = False
-                pl2.lose = False
                 pygame.mixer.music.pause()
             if pl1.lose or pl2.lose:
-                screen.fill("black")
-                self.create_btns(['Попробуйте снова'])
+                if not self.cnt_flag:
+                    death.play(fade_ms=100)
+                    pygame.mixer.music.pause()
+                    self.cnt_flag = True
+                self.create_btns_lose(['Попробуйте снова'])
                 pygame.display.flip()
-                self.final_screen = True
+                self.final_screen_lose = True
             elif pl1.in_portal and pl2.in_portal:
-                screen.fill("black")
                 if not self.cnt_flag:
                     win_end.play(fade_ms=100)
                     pygame.mixer.music.pause()
                     self.cnt_flag = True
                 # win_end.set_volume(0)
-                self.create_btns(["Mission completed", "respect+"])
+                self.create_btns_win(["Mission completed", "respect+"])
                 pygame.display.flip()
-                self.final_screen = True
+                self.final_screen_win = True
             else:
                 screen.blit(fon, (44, 104))
                 all_sprites.update()
@@ -785,7 +797,8 @@ class Game:
                 pygame.display.flip()
                 clock.tick(fps)
 
-    def create_btns(self, printings):
+    def create_btns_win(self, printings):
+        screen.fill("black")
         font = pygame.font.SysFont('Segoe print', 75)
         for i in range(len(printings)):
             text = font.render(printings[i], True, (254, 150, 0))
@@ -794,3 +807,41 @@ class Game:
         screen.blit(self.retry_mouse if self.col_retry else self.retry, (310, 490))
         screen.blit(self.set_lvl_mouse if self.col_set_lvl else self.set_lvl, (540, 490))
         screen.blit(self.next_lvl_mouse if self.col_next else self.next_lvl, (770, 490))
+
+    def create_btns_lose(self, printings):
+        screen.fill("black")
+        font = pygame.font.SysFont('Segoe print', 75)
+        for i in range(len(printings)):
+            text = font.render(printings[i], True, (254, 150, 0))
+            screen.blit(text, (500 - text.get_width() // 2, 50 + i * 100))
+        screen.blit(self.exit_mouse if self.col_exit else self.exit, (137, 490))
+        screen.blit(self.retry_mouse if self.col_retry else self.retry, (425, 490))
+        screen.blit(self.set_lvl_mouse if self.col_set_lvl else self.set_lvl, (712, 490))
+
+    def default_color_w_l(self):
+        self.col_exit = False
+        self.col_set_lvl = False
+        self.col_retry = False
+        self.col_next = False
+
+    def set_col_win(self, x, y):
+        if 80 <= x <= 230 and 490 <= y <= 640:
+            self.col_exit = True
+        elif 310 <= x <= 460 and 490 <= y <= 640:
+            self.col_retry = True
+        elif 540 <= x <= 690 and 490 <= y <= 640:
+            self.col_set_lvl = True
+        elif 770 <= x <= 920 and 490 <= y <= 640:
+            self.col_next = True
+        else:
+            self.default_color_w_l()
+
+    def set_col_lose(self, x, y):
+        if 137 <= x <= 287 and 490 <= y <= 640:
+            self.col_exit = True
+        elif 425 <= x <= 575 and 490 <= y <= 640:
+            self.col_retry = True
+        elif 712 <= x <= 812 and 490 <= y <= 640:
+            self.col_set_lvl = True
+        else:
+            self.default_color_w_l()
