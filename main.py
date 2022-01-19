@@ -151,10 +151,10 @@ class MainMenu:
     def start_game(self):
         name = self.first_select()
         if name:
-            if "user" in name:
-                lvl = f"Пользовательский уровень {name.split('_')[2][0]}"
-            else:
-                lvl = f"Уровень {name.split('.'[0][-1])}"
+            # if "user" in name:
+            #     lvl = f"Пользовательский уровень {name.split('_')[2][0]}"
+            # else:
+            #     lvl = f"Уровень {name.split('.'[0][-1])}"
             g = Game(name)
             g.flag_sound = self.flag_sound
             g.cnt_flag = self.cnt

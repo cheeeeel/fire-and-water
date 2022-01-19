@@ -103,7 +103,7 @@ class Level:
         try:
             name = prompt_file()
             if name:
-                self.current_file = name
+                self.current_file = name.split("/")[-1]
                 with open(name) as f:
                     text = f.read().split("\n")
                     for y in range(len(text[:text.index('')])):
@@ -451,17 +451,22 @@ class Level:
             field.append(row)
         if not self.current_file:
             name = prompt_file()
+            print(name.split("/")[-1])
         else:
-            name = self.current_file
+            name = "levels/" + self.current_file
+        try:
+            if name:
+                with open(name, "w+", newline='\n') as f:
+                    for row in field:
+                        f.write(row + '\n')
+                    f.write('\n')
+                    for m in list(barriers.keys()):
+                        f.write(f'{barriers[m]}; {buttons[m]}\n')
+                    self.current_file = name.split("/")[-1]
+        except:
+            print(self.current_file)
             print(name)
-        if name:
-            with open(name, "w+", newline='\n') as f:
-                for row in field:
-                    f.write(row + '\n')
-                f.write('\n')
-                for m in list(barriers.keys()):
-                    f.write(f'{barriers[m]}; {buttons[m]}\n')
-            self.current_file = name.split("/")[-1]
+
 
     # обновляет значение ячейки на поле
     def on_click(self, cell_coords, key_for_bar=None):

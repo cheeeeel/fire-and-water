@@ -1,7 +1,6 @@
 import pygame
 import os
 import tkinter.filedialog
-
 import creating_levels
 
 barriers_cords = []
@@ -96,12 +95,9 @@ class Heroes(pygame.sprite.Sprite):
             self.cut_sheet(load_image("water-sheet1.png", -1), 5, 2)
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
-        # self.rect = self.rect.move(x, y)
-        #        self.rect = self.image.get_rect()
         self.image = pygame.transform.scale(self.image, (50, 80))
         self.rect.x = x
         self.rect.y = y
-        # self.mask = pygame.mask.from_surface(self.image)
         self.jump_flag = False
         self.in_portal = False
         self.on_button = False
@@ -153,8 +149,6 @@ class Heroes(pygame.sprite.Sprite):
                 self.hero == "water" and pygame.sprite.spritecollideany(self, lava) or \
                 pygame.sprite.spritecollideany(self, poison):
             self.lose = True
-            # if not self.music_flag:
-            #     death.play()
 
         for block in buttons_cords:
             for i, j in block:
@@ -342,14 +336,7 @@ class Liquids(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
         all_sprites.add(self)
-        # self.mask = pygame.mask.from_surface(self.image)
         self.mask = pygame.mask.Mask(size=(self.rect.x, 1))
-
-    # def update(self):
-    #     if not pygame.sprite.spritecollideany(self, platforms) and \
-    #             not pygame.sprite.spritecollideany(self, bars) and \
-    #             not pygame.sprite.spritecollideany(self, btns):
-    #         self.rect = self.rect.move(0, 200 / fps)
 
 
 # загрузка уровня
@@ -357,17 +344,17 @@ class Game:
     def __init__(self, name):
         self.name = name
         self.running = True
-        # self.all_sprites = pygame.sprite.Group()
-        # self.platforms = pygame.sprite.Group()
-        # self.heroes = pygame.sprite.Group()
-        # self.boxes = pygame.sprite.Group()
-        # self.btns = pygame.sprite.Group()
-        # self.bars = pygame.sprite.Group()
-        # self.red_portal = pygame.sprite.Group()
-        # self.blue_portal = pygame.sprite.Group()
-        # self.water = pygame.sprite.Group()
-        # self.lava = pygame.sprite.Group()
-        # self.poison = pygame.sprite.Group()
+        all_sprites.empty()
+        platforms.empty()
+        heroes.empty()
+        boxes.empty()
+        btns.empty()
+        bars.empty()
+        red_portal.empty()
+        blue_portal.empty()
+        water.empty()
+        lava.empty()
+        poison.empty()
         self.cnt_flag = 0
         self.flag_sound = False
         self.final_screen = False
@@ -375,8 +362,6 @@ class Game:
         self.col_set_lvl = False
         self.col_next = False
         self.col_exit = False
-        self.water_jumping_start = pygame.USEREVENT + 1
-        self.fire_jumping_start = pygame.USEREVENT + 2
         self.barriers_cords = []
         self.buttons_cords = []
         self.barriers = []
