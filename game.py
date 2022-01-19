@@ -662,6 +662,9 @@ class Game:
                             return
                     if self.final_screen:
                         if 80 <= x <= 230 and 490 <= y <= 640:
+                            win_end.stop()
+                            if not sound_flag:
+                                pygame.mixer.music.unpause()
                             return
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
@@ -752,6 +755,11 @@ class Game:
             pl2.music_flag = self.cnt_flag
             if (not pl1.music_flag or not pl2.music_flag) and (pl1.lose or pl2.lose):
                 death.play()
+                pl1.music_flag = True
+                pl2.music_flag = True
+                pl1.lose = False
+                pl2.lose = False
+                pygame.mixer.music.pause()
             if pl1.lose or pl2.lose:
                 screen.fill("black")
                 self.create_btns(['Попробуйте снова'])
@@ -760,8 +768,9 @@ class Game:
             elif pl1.in_portal and pl2.in_portal:
                 screen.fill("black")
                 if not self.cnt_flag:
-                    win_end.play()
+                    win_end.play(fade_ms=100)
                     pygame.mixer.music.pause()
+                    self.cnt_flag = True
                 # win_end.set_volume(0)
                 self.create_btns(["Mission completed", "respect+"])
                 pygame.display.flip()
@@ -785,8 +794,3 @@ class Game:
         screen.blit(self.retry_mouse if self.col_retry else self.retry, (310, 490))
         screen.blit(self.set_lvl_mouse if self.col_set_lvl else self.set_lvl, (540, 490))
         screen.blit(self.next_lvl_mouse if self.col_next else self.next_lvl, (770, 490))
-
-
-# pl2 = Heroes(110, 670, "water")
-# pl1 = Heroes(50, 670, "fire")
-# box1 = Box(300, 210)
