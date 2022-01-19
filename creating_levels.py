@@ -64,6 +64,11 @@ class Level:
 
         self.cnt_flag = 0
         self.board = [['`' for _ in range(height)] for _ in range(width)]
+        self.load_pictures()
+        self.current_file = ""
+        self.floor()
+
+    def load_pictures(self):
         self.stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
         self.bar = pygame.transform.scale(load_image("barrier.png"), (24, 24))
         self.btn = pygame.transform.scale(load_image("activate_button.png", -1), (48, 12))
@@ -87,8 +92,8 @@ class Level:
         self.box = pygame.transform.scale(load_image('box.png', -1), (35, 35))
         self.fire = pygame.transform.scale(load_image('fire-bg.png', -1), (50, 80))
         self.water = pygame.transform.scale(load_image('water-bg.png', -1), (50, 80))
-        self.current_file = ""
-        self.floor()
+        self.exit_info = pygame.transform.scale(load_image('close.png', -1), (75, 75))
+        self.exit_info_mouse = pygame.transform.scale(load_image('close_mouse.png', -1), (75, 75))
 
     # настройка внешнего вида
     def set_view(self, left, top, cell_size):
@@ -103,7 +108,7 @@ class Level:
         try:
             name = prompt_file()
             if name:
-                self.current_file = name.split("/")[-1]
+                self.current_file = name.split("/")[-2] + "/" + name.split("/")[-1]
                 with open(name) as f:
                     text = f.read().split("\n")
                     for y in range(len(text[:text.index('')])):
@@ -118,27 +123,25 @@ class Level:
                                      for k in row.split('; ')[1].replace('\n', '')[2:-2].split('), (')]
                         barriers[self.counter] = block_bar
                         buttons[self.counter] = block_btn
-        except FileNotFoundError:
-            pass
-        except ValueError:
-            pass
-        except UnicodeDecodeError:
-            pass
+        except FileNotFoundError as e:
+            print(e)
+        except ValueError as e:
+            print(e)
+        except UnicodeDecodeError as e:
+            print(e)
 
     def default_color(self):
         self.clear_map_color = (255, 255, 255)
         self.change_object_color = (255, 255, 255)
         self.save_map_color = (255, 255, 255)
         self.edit_map_color = (255, 255, 255)
+        self.fire_color = (255, 0, 0)
+        self.water_color = (255, 0, 0)
+        self.box_color = (255, 0, 0)
         self.pause_flag = False
 
-    # настройка внешнего вида
-    # def set_view(self, left, top, cell_size):
-    #     self.left = left
-    #     self.top = top
-    #     self.cell_size = cell_size
 
-    # создает пол на поле
+    # создает виньетку
     def floor(self):
         for y in range(len(self.board)):
             self.board[y][-1] = 'a'
@@ -168,10 +171,13 @@ class Level:
                     screen.blit(self.blue_portal, (x * 24 + 20, y * 24 + 48))
                 elif self.board[x][y] == 'i':
                     screen.blit(self.box, (x * 24 + 20, y * 24 + 48))
+                    self.box_color = (0, 255, 0)
                 elif self.board[x][y] == 'j':
                     screen.blit(self.fire, (x * 24 + 20, y * 24 + 48))
+                    self.fire_color = (0, 255, 0)
                 elif self.board[x][y] == 'k':
                     screen.blit(self.water, (x * 24 + 20, y * 24 + 48))
+                    self.water_color = (0, 255, 0)
                 if self.board[x][y] in ['f', 'g', 'h']:
                     screen.blit(self.stone, (x * 24 + 20, y * 24 + 48))
                     if self.board[x][y] == 'f':
@@ -191,12 +197,19 @@ class Level:
         self.clear_map = self.main_font.render('Очистить карту', True, self.clear_map_color)
         self.save_map = self.main_font.render('Сохранить карту', True, self.save_map_color)
         self.edit_map = self.main_font.render("Редактировать уровень", True, self.edit_map_color)
+        self.lava_txt = self.main_font.render("Огонь", True, self.fire_color)
+        self.water_txt = self.main_font.render("Вода", True, self.water_color)
+        self.box_txt = self.main_font.render("Коробка", True, self.box_color)
+
         screen.blit(self.stop if not self.pause_flag else self.pause_mouse, (940, 5))
-        screen.blit(self.edit_map, (10, 5))
+        screen.blit(self.edit_map, (20, 5))
         screen.blit(self.change_object, (30, 795))
         screen.blit(self.current_object, (280, 805))
         screen.blit(self.clear_map, (390, 795))
         screen.blit(self.save_map, (730, 795))
+        screen.blit(self.lava_txt, (450, 5))
+        screen.blit(self.water_txt, (600, 5))
+        screen.blit(self.box_txt, (750, 5))
 
     # преобразует координаты мыши в координаты ячейки
     def get_cell(self, mouse_pos):
@@ -228,6 +241,16 @@ class Level:
         if cell is None:
             return
         self.on_click(cell, key_for_bar)
+
+    def set_text(self, screen, photo, font_size, x_size, y_size, txt1,
+                 blit_txt_x1, blit_txt_y1, blit_photo_x, blit_photo_y, txt2="", blit_txt_x2=0, blit_txt_y2=0):
+        bar = pygame.transform.scale(photo, (x_size, y_size))
+        font = pygame.font.SysFont('Segoe print', font_size)
+        text1 = font.render(txt1, True, (255, 255, 255))
+        screen.blit(text1, (blit_txt_x1, blit_txt_y1))
+        screen.blit(bar, (blit_photo_x, blit_photo_y))
+        text2 = font.render(txt2, True, (255, 255, 255))
+        screen.blit(text2, (blit_txt_x2, blit_txt_y2))
 
     # смена цвета при наведении
     def set_color(self, mouse_pos):
@@ -334,83 +357,30 @@ class Level:
         screen = pygame.display.set_mode((1000, 840))
         screen.fill("black")
 
-        stone = pygame.transform.scale(self.stone, (50, 50))
-        font = pygame.font.SysFont('Segoe print', 30)
-        text = font.render('платформа, на которой можно стоять', True, (255, 255, 255))
-        screen.blit(text, (75, 10))
-        screen.blit(stone, (10, 10))
-
-        bar = pygame.transform.scale(self.bar, (50, 50))
-        font = pygame.font.SysFont('Segoe print', 15)
-        text = font.render('движущийся барьер, который можно активировать кнопкой', True, (255, 255, 255))
-        screen.blit(text, (75, 70))
-        text = font.render('ЛКМ - создать горизонтальный барьер, ПКМ - вертикальный', True, (255, 255, 255))
-        screen.blit(text, (75, 90))
-        screen.blit(bar, (10, 70))
-
-        btn = pygame.transform.scale(self.btn, (50, 25))
-        text = font.render('активирующая барьер кнопка, при нажатии на неё немного опускается', True, (255, 255, 255))
-        screen.blit(text, (75, 140))
-        text = font.render('можно поставить после постановки барьера \
-неограниченное кол-во раз, ПКМ - конец', True, (255, 255, 255))
-        screen.blit(text, (75, 160))
-        screen.blit(btn, (10, 150))
-
-        por_fire = pygame.transform.scale(self.red_portal, (50, 50))
-        font = pygame.font.SysFont('Segoe print', 20)
-        text = font.render('портал завершения уровня для огня, может быть только один', True, (255, 255, 255))
-        screen.blit(text, (75, 215))
-        screen.blit(por_fire, (10, 210))
-
-        por_water = pygame.transform.scale(self.blue_portal, (50, 50))
-        text = font.render('портал завершения уровня для воды, может быть только один', True, (255, 255, 255))
-        screen.blit(text, (75, 285))
-        screen.blit(por_water, (10, 280))
-
-        water = pygame.transform.scale(self.water_block, (50, 50))
-        font = pygame.font.SysFont('Segoe print', 15)
-        text = font.render('блок воды, при попадании в который персонаж огоня умирает', True, (255, 255, 255))
-        screen.blit(text, (75, 350))
-        text = font.render('причём с персонажем воды ничего не происходит', True, (255, 255, 255))
-        screen.blit(text, (75, 370))
-        screen.blit(water, (10, 350))
-
-        lava = pygame.transform.scale(self.lava_block, (50, 50))
-        text = font.render('блок лавы, при попадании в который персонаж воды умирает', True, (255, 255, 255))
-        screen.blit(text, (75, 420))
-        text = font.render('причём с персонажем огня ничего не происходит', True, (255, 255, 255))
-        screen.blit(text, (75, 440))
-        screen.blit(lava, (10, 420))
-
-        poison = pygame.transform.scale(self.poison_block, (50, 50))
-        font = pygame.font.SysFont('Segoe print', 20)
-        text = font.render('блок яда, при попадании в который любой из персонажей умирает', True, (255, 255, 255))
-        screen.blit(text, (75, 495))
-        screen.blit(poison, (10, 490))
-
-        box = pygame.transform.scale(self.box, (50, 50))
-        font = pygame.font.SysFont('Segoe print', 15)
-        text = font.render('объект, котрый можно толкать при взаимодействии \
-в сторону движения персонажа', True, (255, 255, 255))
-        screen.blit(text, (75, 560))
-        text = font.render('если персонаж встанет на этот объект, то он не сдвинется', True, (255, 255, 255))
-        screen.blit(text, (75, 580))
-        screen.blit(box, (10, 560))
-
-        f_man = pygame.transform.scale(self.fire, (50, 80))
-        font = pygame.font.SysFont('Segoe print', 30)
-        text = font.render('один из главных персонажей, может быть только один', True, (255, 255, 255))
-        screen.blit(text, (75, 645))
-        screen.blit(f_man, (10, 630))
-
-        w_woman = pygame.transform.scale(self.water, (50, 80))
-        text = font.render('один из главных персонажей, может быть только один', True, (255, 255, 255))
-        screen.blit(text, (75, 745))
-        screen.blit(w_woman, (10, 730))
-
-        close_window = pygame.transform.scale(load_image('close.png', -1), (75, 75))
-        close_window_mouse = pygame.transform.scale(load_image('close_mouse.png', -1), (75, 75))
-        screen.blit(close_window, (900, 25))
+        self.set_text(screen, self.stone, 30, 50, 50, "платформа, на которой можно стоять", 75, 10, 10, 10)
+        self.set_text(screen, self.bar, 15, 50, 50, 'движущийся барьер, который можно активировать кнопкой',
+                      75, 70, 10, 70, 'ЛКМ - создать горизонтальный барьер, ПКМ - вертикальный', 75, 90)
+        self.set_text(screen, self.btn, 15, 50, 25,
+                      "активирующая барьер кнопка, при нажатии на неё немного опускается",
+                      75, 140, 10, 150, "можно поставить после постановки барьера \
+неограниченное кол-во раз, ПКМ - конец", 75, 160)
+        self.set_text(screen, self.red_portal, 20, 50, 50,
+                      'портал завершения уровня для огня, может быть только один', 75, 215, 10, 210)
+        self.set_text(screen, self.blue_portal, 20, 50, 50,
+                      'портал завершения уровня для огня, может быть только один', 75, 285, 10, 280)
+        self.set_text(screen, self.water_block, 15, 50, 50, "блок воды, при попадании в который персонаж огоня умирает",
+                      75, 350, 10, 350, "причём с персонажем воды ничего не происходит", 75, 370)
+        self.set_text(screen, self.lava_block, 15, 50, 50, 'блок лавы, при попадании в который персонаж воды умирает',
+                      75, 420, 10, 420, 'причём с персонажем огня ничего не происходит', 75, 440)
+        self.set_text(screen, self.poison_block, 20, 50, 50, 'блок яда, при попадании \
+в который любой из персонажей умирает', 75, 495, 10, 490)
+        self.set_text(screen, self.box, 15, 50, 50, 'объект, котрый можно толкать при взаимодействии \
+в сторону движения персонажа', 75, 560, 10, 560, 'если персонаж встанет на этот объект, то он не сдвинется', 75, 580)
+        self.set_text(screen, self.fire, 30, 50, 80, 'один из главных персонажей, может быть только один',
+                      75, 645, 10, 630)
+        self.set_text(screen, self.water, 30, 50, 80, 'один из главных персонажей, может быть только один',
+                      75, 745, 10, 730)
+        screen.blit(self.exit_info, (900, 25))
         run = True
         while run:
             for event in pygame.event.get():
@@ -443,18 +413,19 @@ class Level:
         keys_for_btns.clear()
 
     def save(self):
-        field = []
-        for y in range(self.height):
-            row = ""
-            for x in range(self.width):
-                row += self.board[x][y]
-            field.append(row)
-        if not self.current_file:
-            name = prompt_file()
-            print(name.split("/")[-1])
-        else:
-            name = "levels/" + self.current_file
-        try:
+        if self.fire_color == self.water_color == self.box_color == (0, 255, 0):
+            field = []
+            for y in range(self.height):
+                row = ""
+                for x in range(self.width):
+                    row += self.board[x][y]
+                field.append(row)
+            if not self.current_file:
+                name = prompt_file()
+                if name:
+                    self.current_file = name.split("/")[-2] + "/" + name.split("/")[-1]
+            else:
+                name = self.current_file
             if name:
                 with open(name, "w+", newline='\n') as f:
                     for row in field:
@@ -462,11 +433,6 @@ class Level:
                     f.write('\n')
                     for m in list(barriers.keys()):
                         f.write(f'{barriers[m]}; {buttons[m]}\n')
-                    self.current_file = name.split("/")[-1]
-        except:
-            print(self.current_file)
-            print(name)
-
 
     # обновляет значение ячейки на поле
     def on_click(self, cell_coords, key_for_bar=None):
@@ -489,7 +455,7 @@ class Level:
         elif self.obj_index == 1:
             self.counter += 1
             self.create_barrier(cell_coords, self.counter, key_for_bar)
-        elif self.obj_index in [3, 4, 9, 10]:
+        elif self.obj_index in [3, 4, 9, 10, 8]:
             flag = True
             try:
                 for x in range(2):
@@ -504,9 +470,8 @@ class Level:
                         if chr(self.obj_index + 97) in self.board[row]:
                             self.board[row][self.board[row].index(chr(self.obj_index + 97))] = '`'
                 self.board[i][j] = chr(self.obj_index + 97 - ord(self.board[i][j]) + 96)
-        elif self.obj_index in [9, 10]:
-            print(1)
         else:
+            self.board[i][j] = "`"
             self.board[i][j] = chr(self.obj_index + 97 - ord(self.board[i][j]) + 96)
 
     # создание барьера

@@ -12,7 +12,7 @@ pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 pygame.mixer.music.load("sounds/music.mp3")
 pygame.mixer.music.play(-1)
-pygame.mixer.music.set_volume(0.2)
+pygame.mixer.music.set_volume(0.1)
 
 jump = pygame.mixer.Sound("sounds/jump.ogg")
 jump.set_volume(0.5)
@@ -44,6 +44,7 @@ water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
 
 
+
 # загрузка фото
 def load_image(s, key=None):
     name = os.path.join("data", s)
@@ -66,7 +67,6 @@ def load_image(s, key=None):
     return image
 
 
-# global pl
 PL = load_image("stone.png")
 
 
@@ -344,17 +344,6 @@ class Game:
     def __init__(self, name):
         self.name = name
         self.running = True
-        all_sprites.empty()
-        platforms.empty()
-        heroes.empty()
-        boxes.empty()
-        btns.empty()
-        bars.empty()
-        red_portal.empty()
-        blue_portal.empty()
-        water.empty()
-        lava.empty()
-        poison.empty()
         self.cnt_flag = 0
         self.flag_sound = False
         self.final_screen = False
@@ -366,6 +355,10 @@ class Game:
         self.buttons_cords = []
         self.barriers = []
         self.buttons = []
+        self.load_pictures()
+        self.default()
+
+    def load_pictures(self):
         self.fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         self.PL = load_image("stone.png")
         self.exit_mouse = pygame.transform.scale(load_image('exit_mouse.png', -1), (150, 150))
@@ -394,27 +387,21 @@ class Game:
         self.set_lvl_mouse = pygame.transform.scale(load_image('set_lvl_mouse.png', -1), (150, 150))
         self.next_lvl = pygame.transform.scale(load_image('next_lvl.png', -1), (150, 150))
         self.next_lvl_mouse = pygame.transform.scale(load_image('next_lvl_mouse.png', -1), (150, 150))
-
-        # self.pl2 = Heroes(110, 670, "water")
-        # self.pl1 = Heroes(50, 670, "fire")
-        # self.box1 = Box(300, 210)
+        self.close = pygame.transform.scale(load_image('close.png', -1), (75, 75))
+        self.close_mouse = pygame.transform.scale(load_image('close_mouse.png', -1), (75, 75))
 
     def default(self):
-        global all_sprites, platforms, heroes, boxes, btns, \
-            bars, red_portal, blue_portal, water, lava, poison
-        all_sprites = pygame.sprite.Group()
-        platforms = pygame.sprite.Group()
-        heroes = pygame.sprite.Group()
-        boxes = pygame.sprite.Group()
-        btns = pygame.sprite.Group()
-        bars = pygame.sprite.Group()
-        red_portal = pygame.sprite.Group()
-        blue_portal = pygame.sprite.Group()
-        water = pygame.sprite.Group()
-        lava = pygame.sprite.Group()
-        poison = pygame.sprite.Group()
-        water_jumping_start = pygame.USEREVENT + 1
-        fire_jumping_start = pygame.USEREVENT + 2
+        all_sprites.empty()
+        platforms.empty()
+        heroes.empty()
+        boxes.empty()
+        btns.empty()
+        bars.empty()
+        red_portal.empty()
+        blue_portal.empty()
+        water.empty()
+        lava.empty()
+        poison.empty()
 
     def pause(self):
         new_screen = pygame.display.set_mode((1000, 840))
@@ -505,6 +492,19 @@ class Game:
             sound_flag = False
             creating_levels.sound_flag = False
 
+    def set_text_image(self, screen, photo, font_size, x_size, y_size, txt1,
+                       blit_txt_x1, blit_txt_y1, blit_photo_x, blit_photo_y):
+        photo = pygame.transform.scale(photo, (x_size, y_size))
+        font = pygame.font.SysFont('Segoe print', font_size)
+        text1 = font.render(txt1, True, (255, 255, 255))
+        screen.blit(text1, (blit_txt_x1, blit_txt_y1))
+        screen.blit(photo, (blit_photo_x, blit_photo_y))
+
+    def set_text(self, screen, font_size, text, text_x, text_y, color=(255, 255, 255)):
+        font = pygame.font.SysFont('Segoe print', font_size)
+        text = font.render(text, True, color)
+        screen.blit(text, (text_x, text_y))
+
     def do_info(self):
         screen.fill("black")
         pygame.display.flip()
@@ -513,92 +513,38 @@ class Game:
         text = font.render('Информация об объектах', True, (153, 255, 153))
         screen.blit(text, (500 - text.get_width() // 2, 10))
 
-        stone = pygame.transform.scale(self.PL, (30, 30))
-        font = pygame.font.SysFont('Segoe print', 20)
-        text = font.render('платформа, на которой можно стоять', True, (255, 255, 255))
-        screen.blit(text, (75, 60))
-        screen.blit(stone, (20, 60))
+        self.set_text_image(screen, self.PL, 20, 30, 30, "платформа, на которой можно стоять", 75, 60, 20, 60)
+        self.set_text_image(screen, self.bar, 20, 30, 30, 'движущийся барьер, который можно активировать кнопкой', 75,
+                            100, 20, 100)
+        self.set_text_image(screen, self.btn, 20, 30, 15, "активирующая барьер кнопка, \
+при нажатии на неё немного опускается", 75, 140, 20, 150)
+        self.set_text_image(screen, self.r_portal, 20, 30, 30, 'портал завершения уровня для огня', 75, 180, 20, 180)
+        self.set_text_image(screen, self.b_portal, 20, 30, 30, 'портал завершения уровня для воды', 75, 220, 20, 220)
+        self.set_text_image(screen, self.w_b, 20, 30, 30, "блок воды, при попадании в который персонаж огоня умирает",
+                            75, 260, 20, 260)
+        self.set_text_image(screen, self.f_b, 20, 30, 30, 'блок лавы, при попадании в который персонаж воды умирает',
+                            75, 300, 20, 300)
+        self.set_text_image(screen, self.p_b, 20, 30, 30, 'блок яда, при попадании \
+в который любой из персонажей умирает', 75, 340, 20, 340)
+        self.set_text_image(screen, self.box, 20, 30, 30, 'объект, котрый можно толкать при взаимодействии \
+в сторону движения персонажа', 75, 380, 20, 380)
+        self.set_text_image(screen, self.fire, 20, 30, 50, 'главные герои', 75,
+                            460, 20, 420)
+        screen.blit(pygame.transform.scale(self.water, (30, 50)), (20, 480))
 
-        bar = pygame.transform.scale(self.bar, (30, 30))
-        font = pygame.font.SysFont('Segoe print', 20)
-        text = font.render('движущийся барьер, который можно активировать кнопкой', True, (255, 255, 255))
-        screen.blit(text, (75, 100))
-        screen.blit(bar, (20, 100))
+        self.set_text(screen, 30, 'Управление', 410, 530, (153, 255, 153))
+        self.set_text(screen, 30, 'Вода', 153, 560, (0, 100, 255))
+        self.set_text(screen, 30, 'Огонь', 753, 560, (255, 100, 0))
+        self.set_text(screen, 30, '-->  движение вправо', 20, 620)
+        self.set_text(screen, 30, '<--  движение влево', 20, 670)
+        self.set_text(screen, 40, '|    прыжок', 40, 720)
+        self.set_text(screen, 40, '^', 36, 705)
+        self.set_text(screen, 30, 'D  движение вправо', 650, 620)
+        self.set_text(screen, 30, 'A  движение влево', 650, 670)
+        self.set_text(screen, 40, 'W  прыжок', 650, 720)
+        self.set_text(screen, 30, 'ESC пауза', 420, 770, (255, 0, 0))
 
-        btn = pygame.transform.scale(self.btn, (30, 15))
-        text = font.render('активирующая барьер кнопка', True, (255, 255, 255))
-        screen.blit(text, (75, 140))
-        screen.blit(btn, (20, 150))
-
-        por_fire = pygame.transform.scale(self.r_portal, (30, 30))
-        text = font.render('портал завершения уровня для огня', True, (255, 255, 255))
-        screen.blit(text, (75, 180))
-        screen.blit(por_fire, (20, 180))
-
-        por_water = pygame.transform.scale(self.b_portal, (30, 30))
-        text = font.render('портал завершения уровня для воды', True, (255, 255, 255))
-        screen.blit(text, (75, 220))
-        screen.blit(por_water, (20, 220))
-
-        water = pygame.transform.scale(self.w_b, (30, 30))
-        text = font.render('блок воды, при попадании в который персонаж огоня умирает', True, (255, 255, 255))
-        screen.blit(text, (75, 260))
-        screen.blit(water, (20, 260))
-
-        lava = pygame.transform.scale(self.f_b, (30, 30))
-        text = font.render('блок лавы, при попадании в который персонаж воды умирает', True, (255, 255, 255))
-        screen.blit(text, (75, 300))
-        screen.blit(lava, (20, 300))
-
-        poison = pygame.transform.scale(self.p_b, (30, 30))
-        text = font.render('блок яда, при попадании в который любой из персонажей умирает', True, (255, 255, 255))
-        screen.blit(text, (75, 340))
-        screen.blit(poison, (20, 340))
-
-        box = pygame.transform.scale(self.box, (30, 30))
-        text = font.render('объект, котрый можно толкать при взаимодействии', True, (255, 255, 255))
-        screen.blit(text, (75, 380))
-        screen.blit(box, (20, 380))
-
-        f_man = pygame.transform.scale(self.fire, (30, 50))
-        font = pygame.font.SysFont('Segoe print', 60)
-        text = font.render('главные герои', True, (255, 255, 255))
-        screen.blit(text, (75, 420))
-        screen.blit(f_man, (20, 420))
-
-        w_woman = pygame.transform.scale(self.water, (30, 50))
-        screen.blit(w_woman, (20, 480))
-
-        font = pygame.font.SysFont('Segoe print', 30)
-        text = font.render('Управление', True, (153, 255, 153))
-        screen.blit(text, (500 - text.get_width() // 2, 530))
-
-        text = font.render('Вода', True, (0, 100, 255))
-        screen.blit(text, (250 - text.get_width() // 2, 560))
-        text = font.render('Огонь', True, (255, 100, 0))
-        screen.blit(text, (750 - text.get_width() // 2, 560))
-
-        text = font.render('-->  движение вправо', True, (255, 255, 255))
-        screen.blit(text, (20, 620))
-        text = font.render('<--  движение влево', True, (255, 255, 255))
-        screen.blit(text, (20, 670))
-        text = font.render('|    прыжок', True, (255, 255, 255))
-        screen.blit(text, (40, 720))
-        text = font.render('^', True, (255, 255, 255))
-        screen.blit(text, (36, 705))
-
-        text = font.render('D  движение вправо', True, (255, 255, 255))
-        screen.blit(text, (650, 620))
-        text = font.render('A  движение влево', True, (255, 255, 255))
-        screen.blit(text, (650, 670))
-        text = font.render('W  прыжок', True, (255, 255, 255))
-        screen.blit(text, (650, 720))
-        text = font.render('ESC пауза', True, (255, 0, 0))
-        screen.blit(text, (500 - text.get_width() // 2, 770))
-
-        close_window = pygame.transform.scale(load_image('close.png', -1), (75, 75))
-        close_window_mouse = pygame.transform.scale(load_image('close_mouse.png', -1), (75, 75))
-        screen.blit(close_window, (900, 25))
+        screen.blit(self.close, (900, 25))
         run = True
         while run:
             for event in pygame.event.get():
@@ -607,9 +553,9 @@ class Game:
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     if 900 <= x <= 975 and 25 <= y <= 100:
-                        screen.blit(close_window_mouse, (900, 25))
+                        screen.blit(self.close_mouse, (900, 25))
                     else:
-                        screen.blit(close_window, (900, 25))
+                        screen.blit(self.close, (900, 25))
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
                     if 900 <= x <= 975 and 25 <= y <= 100 and event.button == 1:
@@ -672,9 +618,6 @@ class Game:
                         Liquids(20 + j * 24, 80 + i * 24, "lava")
 
     def mainloop(self):
-        clock = pygame.time.Clock()
-        fps = 60
-        screen.fill("black")
         self.running = True
         set_pause = False
         fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
@@ -751,7 +694,6 @@ class Game:
                 if event.type == anim:
                     pl1.animation()
                     pygame.time.set_timer(anim, 100)
-
                     pl2.animation()
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
