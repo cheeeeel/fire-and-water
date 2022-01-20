@@ -4,7 +4,6 @@ import tkinter.filedialog
 import json
 import creating_levels
 
-
 barriers_cords = []
 buttons_cords = []
 barriers = []
@@ -44,7 +43,6 @@ lava = pygame.sprite.Group()
 poison = pygame.sprite.Group()
 water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
-
 
 
 # загрузка фото
@@ -104,7 +102,7 @@ class Heroes(pygame.sprite.Sprite):
         self.in_portal = False
         self.on_button = False
         self.is_lose = False
-        #self.is_win = False
+        # self.is_win = False
         self.under_bar = False
         self.music_flag = True
         self.index = (-100, -100)
@@ -169,20 +167,22 @@ class Heroes(pygame.sprite.Sprite):
     def right(self):
         self.rect = self.rect.move(4, -5)
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
-            self.rect = self.rect.move(200 / fps, 0)
-        if not not pygame.sprite.spritecollideany(self, boxes) \
-                and not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(-(200 / fps), 0)
+            if (abs(self.rect.y + 50 - box1.rect.y) <= 5 or abs(self.rect.y + 80 - box1.rect.y) <= 5) \
+                    and not self.jump_flag:
+                self.rect = self.rect.move(200 / fps, 0)
+            elif self.jump_flag and not pygame.sprite.spritecollideany(self, boxes):
+                self.rect = self.rect.move(200 / fps, 0)
         self.rect = self.rect.move(-4, 5)
 
     # движение влево
     def left(self):
         self.rect = self.rect.move(-4, -5)
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
-            self.rect = self.rect.move(-(200 / fps), 0)
-        if not not pygame.sprite.spritecollideany(self, boxes) \
-                and not pygame.sprite.spritecollideany(self, platforms):
-            self.rect = self.rect.move(200 / fps, 0)
+            if (abs(self.rect.y + 50 - box1.rect.y) <= 5 or abs(self.rect.y + 80 - box1.rect.y) <= 5) \
+                    and not self.jump_flag:
+                self.rect = self.rect.move(-200 / fps, 0)
+            elif self.jump_flag and not pygame.sprite.spritecollideany(self, boxes):
+                self.rect = self.rect.move(-200 / fps, 0)
         self.rect = self.rect.move(4, 5)
 
     def jump(self):
@@ -245,20 +245,18 @@ class Box(pygame.sprite.Sprite):
     def right(self):
         self.rect = self.rect.move(1, -5)
         if not pygame.sprite.spritecollideany(self, platforms):
-            if (pygame.sprite.collide_mask(self, pl1) and
-                self.rect.y < pl1.rect.y + 45 < self.rect.y + 35) \
-                    or (pygame.sprite.collide_mask(self, pl2)
-                        and self.rect.y < pl2.rect.y + 45 < self.rect.y + 35):
+            if ((not pygame.sprite.collide_mask(self, pl1)) is False and abs(pl1.rect.y + 40 - self.rect.y) <= 5) \
+                    or ((not pygame.sprite.collide_mask(self, pl2))
+                        is False and abs(pl2.rect.y + 40 - self.rect.y) <= 5):
                 self.rect = self.rect.move(200 / fps, 0)
         self.rect = self.rect.move(-1, 5)
 
     def left(self):
         self.rect = self.rect.move(-1, -5)
         if not pygame.sprite.spritecollideany(self, platforms):
-            if (pygame.sprite.collide_mask(self, pl1) and
-                self.rect.y < pl1.rect.y + 45 < self.rect.y + 35) \
-                    or (pygame.sprite.collide_mask(self, pl2)
-                        and self.rect.y < pl2.rect.y + 45 < self.rect.y + 35):
+            if ((not pygame.sprite.collide_mask(self, pl1)) is False and abs(pl1.rect.y + 40 - self.rect.y) <= 5) \
+                    or ((not pygame.sprite.collide_mask(self, pl2))
+                        is False and abs(pl2.rect.y + 40 - self.rect.y) <= 5):
                 self.rect = self.rect.move(-(200 / fps), 0)
         self.rect = self.rect.move(1, 5)
 
@@ -732,51 +730,7 @@ class Game:
                     elif self.final_screen_lose:
                         self.set_col_lose(x, y)
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    x, y = event.pos
-                    if not (self.final_screen_win or self.final_screen_lose):
-                        if 930 <= x <= 990 and 10 <= y <= 70:
-                            self.stop_game()
-                            set_pause = False
-                            if self.running:
-                                screen.fill((0, 0, 0))
-                                screen.blit(level_text, (20, 10))
-                            else:
-                                return
-                    if self.final_screen_win:
-                        if 80 <= x <= 230 and 490 <= y <= 640:
-                            win_end.stop()
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            return
-                        elif 310 <= x <= 460 and 490 <= y <= 640:
-                            win_end.stop()
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            self.final_screen_win = False
-                            self.default()
-                            self.default_color_w_l()
-                            self.load_level()
-                        elif 540 <= x <= 690 and 490 <= y <= 640:
-                            win_end.stop()
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            self.draw_levels()
-                        elif 770 <= x <= 920 and 490 <= y <= 640:
-                            """"""
-                    elif self.final_screen_lose:
-                        if 137 <= x <= 287 and 490 <= y <= 640:
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            return
-                        elif 425 <= x <= 575 and 490 <= y <= 640:
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            self.final_screen_lose = False
-                            self.default()
-                            self.default_color_w_l()
-                            self.load_level()
-                        elif 712 <= x <= 862 and 490 <= y <= 640:
-                            """что-то с меню"""
+                    self.set_with_click(*event.pos)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         pygame.time.set_timer(water_jumping_start, 650)
@@ -867,7 +821,7 @@ class Game:
             if pl1.is_lose or pl2.is_lose:
                 if not self.cnt_flag:
                     death.play(fade_ms=100)
-                    #death.set_volume(0)
+                    # death.set_volume(0)
                     pygame.mixer.music.pause()
                 self.create_btns_lose(['Попробуйте снова'])
                 pygame.display.flip()
@@ -875,7 +829,7 @@ class Game:
             elif pl1.in_portal and pl2.in_portal:
                 if not self.cnt_flag:
                     win_end.play(fade_ms=100)
-                    #win_end.set_volume(0)
+                    # win_end.set_volume(0)
                     pygame.mixer.music.pause()
                 self.create_btns_win(["Mission completed", "respect+"])
                 pygame.display.flip()
@@ -938,3 +892,54 @@ class Game:
             self.col_set_lvl = True
         else:
             self.default_color_w_l()
+
+    def set_with_click(self, x, y):
+        font = pygame.font.SysFont('Segoe Print', 30)
+        level_text = font.render('Уровень 1', True, (255, 255, 255))
+        if not (self.final_screen_win or self.final_screen_lose):
+            if 930 <= x <= 990 and 10 <= y <= 70:
+                self.stop_game()
+                set_pause = False
+                if self.running:
+                    screen.fill((0, 0, 0))
+                    screen.blit(level_text, (20, 10))
+                else:
+                    return
+        if self.final_screen_win:
+            if 80 <= x <= 230 and 490 <= y <= 640:
+                win_end.stop()
+                if not sound_flag:
+                    pygame.mixer.music.unpause()
+                return
+            elif 310 <= x <= 460 and 490 <= y <= 640:
+                win_end.stop()
+                if not sound_flag:
+                    pygame.mixer.music.unpause()
+                self.final_screen_win = False
+                self.default()
+                self.default_color_w_l()
+                self.load_level()
+            elif 540 <= x <= 690 and 490 <= y <= 640:
+                win_end.stop()
+                if not sound_flag:
+                    pygame.mixer.music.unpause()
+                self.draw_levels()
+                pygame.display.set_mode((1000, 840))
+                screen.fill((0, 0, 0))
+                screen.blit(level_text, (20, 10))
+            elif 770 <= x <= 920 and 490 <= y <= 640:
+                """"""
+        elif self.final_screen_lose:
+            if 137 <= x <= 287 and 490 <= y <= 640:
+                if not sound_flag:
+                    pygame.mixer.music.unpause()
+                return
+            elif 425 <= x <= 575 and 490 <= y <= 640:
+                if not sound_flag:
+                    pygame.mixer.music.unpause()
+                self.final_screen_lose = False
+                self.default()
+                self.default_color_w_l()
+                self.load_level()
+            elif 712 <= x <= 862 and 490 <= y <= 640:
+                """что-то с меню"""
