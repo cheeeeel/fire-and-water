@@ -4,7 +4,6 @@ import tkinter.filedialog
 import json
 import creating_levels
 
-
 barriers_cords = []
 buttons_cords = []
 barriers = []
@@ -44,7 +43,6 @@ lava = pygame.sprite.Group()
 poison = pygame.sprite.Group()
 water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
-
 
 
 # загрузка фото
@@ -138,14 +136,13 @@ class Heroes(pygame.sprite.Sprite):
             self.rect = self.rect.move(0, 200 / fps)
         for block in barriers:
             for bar in block:
-                if bar.up_flag and not not pygame.sprite.spritecollideany(self, bars) and \
+                if bar.up_flag and pygame.sprite.spritecollideany(self, bars) and \
                         (pl1.on_button or pl2.on_button or box1.on_button) and not self.under_bar:
                     self.rect = self.rect.move(0, - 120 / fps)
                     break
         if self.hero == "fire" and pygame.sprite.spritecollideany(self, red_portal) or \
                 self.hero == "water" and pygame.sprite.spritecollideany(self, blue_portal):
             self.in_portal = True
-
         else:
             self.in_portal = False
         if self.hero == "fire" and pygame.sprite.spritecollideany(self, water) or \
@@ -232,6 +229,7 @@ class Box(pygame.sprite.Sprite):
             for x, y in block:
                 if (x - 0.5) * 24 <= self.rect.x - 20 <= (x + 1) * 24 and \
                         y * 24 <= self.rect.y - 45 <= (y + 1) * 24:
+                    self.rect = self.rect.move(0, 200 / fps)
                     self.on_button = True
                     ind_bl = buttons_cords.index(block)
                     self.index = (ind_bl, buttons_cords[ind_bl].index((x, y)))
@@ -402,6 +400,7 @@ class Game:
         self.pause_mouse = load_image('pause_mouse.png', -1)
 
     def default(self):
+        global buttons_cords, barriers_cords, barriers, buttons
         all_sprites.empty()
         platforms.empty()
         heroes.empty()
@@ -413,6 +412,7 @@ class Game:
         water.empty()
         lava.empty()
         poison.empty()
+        buttons_cords, barriers_cords, barriers, buttons = [], [], [], []
 
     def stop_game(self):
         new_screen = pygame.display.set_mode((1000, 840))
@@ -456,9 +456,7 @@ class Game:
                     elif 400 <= x <= 600 and 290 <= y <= 490:
                         run = False
                     elif 700 <= x <= 900 and 290 <= y <= 490:
-                        #self.default()
                         self.new_lvl = True
-                        #self.load_level()
                         return
                     elif 550 <= x <= 750 and 540 <= y <= 740:
                         self.cnt_flag = (self.cnt_flag + 1) % 2
@@ -638,7 +636,6 @@ class Game:
             name = json.load(f)["current_level"]
             level_text = font.render(f'Уровень {name.split("/")[1][0]}', True, (255, 255, 255))
             screen.blit(level_text, (20, 10))
-            print(name)
             with open(name) as f:
                 rows = f.readlines()
                 for row in rows[rows.index('\n') + 1:]:
@@ -743,9 +740,7 @@ class Game:
                             if not sound_flag:
                                 pygame.mixer.music.unpause()
                             self.final_screen_win = False
-                            self.default()
-                            self.default_color_w_l()
-                            self.load_level()
+                            self.new_lvl = True
                         elif 540 <= x <= 690 and 490 <= y <= 640:
                             win_end.stop()
                             if not sound_flag:
@@ -762,9 +757,7 @@ class Game:
                             if not sound_flag:
                                 pygame.mixer.music.unpause()
                             self.final_screen_lose = False
-                            self.default()
-                            self.default_color_w_l()
-                            self.load_level()
+                            self.new_lvl = True
                         elif 712 <= x <= 862 and 490 <= y <= 640:
                             """что-то с меню"""
                 if event.type == pygame.KEYDOWN:
@@ -778,13 +771,14 @@ class Game:
                         if not self.cnt_flag:
                             jump.play()
                         pl1.jump_flag = True
-                    if event.key == pygame.K_ESCAPE:
-                        self.stop_game()
-                        if self.running:
-                            screen.fill((0, 0, 0))
-                            screen.blit(level_text, (20, 10))
-                        else:
-                            return
+                    if not (pl1.lose or pl1.lose) or not (pl1.in_portal and pl2.in_portal):
+                        if event.key == pygame.K_ESCAPE:
+                            self.stop_game()
+                            if self.running:
+                                screen.fill((0, 0, 0))
+                                screen.blit(level_text, (20, 10))
+                            else:
+                                return
                 if event.type == fire_jumping_start:
                     if not pl1.jump_flag:
                         pygame.time.set_timer(fire_jumping_start, 0)
@@ -857,7 +851,7 @@ class Game:
             if pl1.lose or pl2.lose:
                 if not self.cnt_flag:
                     death.play(fade_ms=100)
-                    #death.set_volume(0)
+                    # death.set_volume(0)
                     pygame.mixer.music.pause()
                 self.create_btns_lose(['Попробуйте снова'])
                 pygame.display.flip()
@@ -865,7 +859,7 @@ class Game:
             elif pl1.in_portal and pl2.in_portal:
                 if not self.cnt_flag:
                     win_end.play(fade_ms=100)
-                    #win_end.set_volume(0)
+                    # win_end.set_volume(0)
                     pygame.mixer.music.pause()
                 self.create_btns_win(["Mission completed", "respect+"])
                 with open("levels_info.json") as f1:
