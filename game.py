@@ -103,8 +103,8 @@ class Heroes(pygame.sprite.Sprite):
         self.jump_flag = False
         self.in_portal = False
         self.on_button = False
-        self.is_lose = False
-        #self.is_win = False
+        self.lose = False
+        # self.is_win = False
         self.under_bar = False
         self.music_flag = True
         self.index = (-100, -100)
@@ -145,12 +145,16 @@ class Heroes(pygame.sprite.Sprite):
         if self.hero == "fire" and pygame.sprite.spritecollideany(self, red_portal) or \
                 self.hero == "water" and pygame.sprite.spritecollideany(self, blue_portal):
             self.in_portal = True
+
         else:
             self.in_portal = False
         if self.hero == "fire" and pygame.sprite.spritecollideany(self, water) or \
                 self.hero == "water" and pygame.sprite.spritecollideany(self, lava) or \
                 pygame.sprite.spritecollideany(self, poison):
             self.lose = True
+            # if not self.music_flag:
+            #     death.play()
+
         for block in buttons_cords:
             for i, j in block:
                 if (i - 1) * 24 <= self.rect.x - 20 <= (i + 1) * 24 and \
@@ -163,14 +167,16 @@ class Heroes(pygame.sprite.Sprite):
                     self.on_button = False
                     self.index = (-100, -100)
 
-    # движение вправо
+        # движение вправо
+
     def right(self):
         self.rect = self.rect.move(4, -5)
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
             self.rect = self.rect.move(200 / fps, 0)
         self.rect = self.rect.move(-4, 5)
 
-    # движение влево
+        # движение влево
+
     def left(self):
         self.rect = self.rect.move(-4, -5)
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
@@ -407,20 +413,6 @@ class Game:
         water.empty()
         lava.empty()
         poison.empty()
-        # self.running = True
-        # self.cnt_flag = 0
-        # self.flag_sound = False
-        # self.final_screen_win = False
-        # self.final_screen_lose = False
-        # self.col_retry = False
-        # self.col_set_lvl = False
-        # self.col_next = False
-        # self.col_exit = False
-        # self.new_lvl = True
-        # self.barriers_cords = []
-        # self.buttons_cords = []
-        # self.barriers = []
-        # self.buttons = []
 
     def stop_game(self):
         new_screen = pygame.display.set_mode((1000, 840))
@@ -464,8 +456,9 @@ class Game:
                     elif 400 <= x <= 600 and 290 <= y <= 490:
                         run = False
                     elif 700 <= x <= 900 and 290 <= y <= 490:
-                        self.default()
-                        self.load_level()
+                        #self.default()
+                        self.new_lvl = True
+                        #self.load_level()
                         return
                     elif 550 <= x <= 750 and 540 <= y <= 740:
                         self.cnt_flag = (self.cnt_flag + 1) % 2
@@ -586,8 +579,8 @@ class Game:
             pygame.display.flip()
 
     def draw_levels(self):
-        pl1.in_portal = False
-        pl2.in_portal = False
+        # pl1.in_portal = False
+        # pl2.in_portal = False
         size = 1000, 440
         screen = pygame.display.set_mode(size)
         screen.fill('black')
@@ -707,6 +700,7 @@ class Game:
         fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         anim = pygame.USEREVENT + 3
         pygame.time.set_timer(anim, 100)
+        self.draw_levels()
         while self.running:
             if self.new_lvl:
                 self.default()
@@ -860,7 +854,7 @@ class Game:
                             bar.down()
             pl1.music_flag = self.cnt_flag
             pl2.music_flag = self.cnt_flag
-            if pl1.is_lose or pl2.is_lose:
+            if pl1.lose or pl2.lose:
                 if not self.cnt_flag:
                     death.play(fade_ms=100)
                     #death.set_volume(0)
@@ -874,6 +868,12 @@ class Game:
                     #win_end.set_volume(0)
                     pygame.mixer.music.pause()
                 self.create_btns_win(["Mission completed", "respect+"])
+                with open("levels_info.json") as f1:
+                    data = json.load(f1)
+                    data[f"level_{data['current_level'].split('.')[0]}"] = "opened"
+                    with open("levels_info.json", "w") as f2:
+                        json.dump(data, f2)
+
                 pygame.display.flip()
                 self.final_screen_win = True
             else:
