@@ -455,6 +455,8 @@ class Level:
         elif self.obj_index == 1:
             self.counter += 1
             self.create_barrier(cell_coords, self.counter, key_for_bar)
+        elif self.board[i][j] == "a":
+            self.board[i][j] = "`"
         elif self.obj_index in [3, 4, 9, 10, 8]:
             flag = True
             try:

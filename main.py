@@ -158,8 +158,6 @@ class MainMenu:
             g = Game(name)
             g.flag_sound = self.flag_sound
             g.cnt_flag = self.cnt
-            screen.fill("black")
-            g.load_level()
             g.mainloop()
             if game.sound_flag is not None or creating_levels.sound_flag is not None:
                 if game.sound_flag and creating_levels.sound_flag:
