@@ -4,24 +4,26 @@ import tkinter.filedialog
 import json
 import creating_levels
 
+# const
 barriers_cords = []
 buttons_cords = []
 barriers = []
 buttons = []
+# музыка
 sound_flag = None
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 pygame.mixer.music.load("sounds/music.mp3")
 pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(0.1)
-
 jump = pygame.mixer.Sound("sounds/jump.ogg")
 jump.set_volume(0.5)
-
 death = pygame.mixer.Sound("sounds/death.ogg")
-
+death.set_volume(0.5)
 win_end = pygame.mixer.Sound("sounds/win2.ogg")
+win_end.set_volume(0.5)
 
+# работа с окном
 pygame.init()
 size = 1000, 800
 screen = pygame.display.set_mode(size)
@@ -30,6 +32,7 @@ screen.fill("black")
 clock = pygame.time.Clock()
 fps = 60
 
+# группы спрайтов
 all_sprites = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
 heroes = pygame.sprite.Group()
@@ -70,6 +73,7 @@ def load_image(s, key=None):
 PL = load_image("stone.png")
 
 
+# меню выбора файла из проводника
 def prompt_file():
     top = tkinter.Tk()
     top.withdraw()  # hide window
@@ -107,6 +111,7 @@ class Heroes(pygame.sprite.Sprite):
         self.music_flag = True
         self.index = (-100, -100)
 
+    # нарезка анимации
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
                                 sheet.get_height() // rows)
@@ -116,6 +121,7 @@ class Heroes(pygame.sprite.Sprite):
                 self.frames.append(sheet.subsurface(pygame.Rect(
                     frame_location, self.rect.size)))
 
+    # анимация
     def animation(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
@@ -164,22 +170,20 @@ class Heroes(pygame.sprite.Sprite):
                     self.on_button = False
                     self.index = (-100, -100)
 
-        # движение вправо
-
+    # движение вправо
     def right(self):
         self.rect = self.rect.move(4, -5)
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
             self.rect = self.rect.move(200 / fps, 0)
         self.rect = self.rect.move(-4, 5)
 
-        # движение влево
-
+    # движение влево
     def left(self):
         self.rect = self.rect.move(-4, -5)
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
             self.rect = self.rect.move(-(200 / fps), 0)
         self.rect = self.rect.move(4, 5)
-
+    # прыжок
     def jump(self):
         self.rect = self.rect.move(0, -5)
         if not pygame.sprite.spritecollideany(self, platforms):
@@ -220,6 +224,7 @@ class Box(pygame.sprite.Sprite):
         self.on_button = False
         self.index = (-100, -100)
 
+    # гравитация и коллизия
     def update(self):
         if not pygame.sprite.spritecollideany(self, platforms) and \
                 not pygame.sprite.spritecollideany(self, bars) and \
@@ -238,6 +243,7 @@ class Box(pygame.sprite.Sprite):
                     self.on_button = False
                     self.index = (-100, -100)
 
+    # движение вправо
     def right(self):
         self.rect = self.rect.move(1, -5)
         if not pygame.sprite.spritecollideany(self, platforms):
@@ -248,6 +254,7 @@ class Box(pygame.sprite.Sprite):
                 self.rect = self.rect.move(200 / fps, 0)
         self.rect = self.rect.move(-1, 5)
 
+    # движение влево
     def left(self):
         self.rect = self.rect.move(-1, -5)
         if not pygame.sprite.spritecollideany(self, platforms):
@@ -275,6 +282,7 @@ class Barrier(pygame.sprite.Sprite):
         self.bar_max = False
         self.move_down = False
 
+    # подъем вверх
     def up(self):
         if self.rect.y > self.start_rect - 120:
             self.rect.y -= 120 / fps
@@ -282,6 +290,7 @@ class Barrier(pygame.sprite.Sprite):
         else:
             self.bar_max = True
 
+    # подъем вниз
     def down(self):
         if self.rect.y < self.start_rect:
             self.rect.y += 120 / fps
@@ -330,6 +339,7 @@ class Portal(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
+# жидкости
 class Liquids(pygame.sprite.Sprite):
     def __init__(self, x, y, type_of):
         super().__init__()
@@ -371,6 +381,7 @@ class Game:
         self.load_pictures()
         self.default()
 
+    # загрузка картинок
     def load_pictures(self):
         self.fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         self.PL = load_image("stone.png")
@@ -405,6 +416,7 @@ class Game:
         self.pause = load_image('pause.png', -1)
         self.pause_mouse = load_image('pause_mouse.png', -1)
 
+    # обнуление групп и констант
     def default(self):
         all_sprites.empty()
         platforms.empty()
@@ -424,6 +436,7 @@ class Game:
         self.final_screen_win = False
         self.final_screen_lose = False
 
+    # пауза в игре
     def stop_game(self):
         new_screen = pygame.display.set_mode((1000, 840))
         new_screen.fill("black")
@@ -501,6 +514,7 @@ class Game:
             screen.blit(btn_info, (250, 540))
             pygame.display.flip()
 
+    # работа с музыкой
     def set_music(self):
         global sound_flag
         if self.cnt_flag:
@@ -514,6 +528,7 @@ class Game:
             sound_flag = False
             creating_levels.sound_flag = False
 
+    # текст + картинки
     def set_text_image(self, screen, photo, font_size, x_size, y_size, txt1,
                        blit_txt_x1, blit_txt_y1, blit_photo_x, blit_photo_y):
         photo = pygame.transform.scale(photo, (x_size, y_size))
@@ -522,11 +537,13 @@ class Game:
         screen.blit(text1, (blit_txt_x1, blit_txt_y1))
         screen.blit(photo, (blit_photo_x, blit_photo_y))
 
+    # текст
     def set_text(self, screen, font_size, text, text_x, text_y, color=(255, 255, 255)):
         font = pygame.font.SysFont('Segoe print', font_size)
         text = font.render(text, True, color)
         screen.blit(text, (text_x, text_y))
 
+    # инструкция в паузе
     def do_info(self):
         screen.fill("black")
         pygame.display.flip()
@@ -641,6 +658,7 @@ class Game:
                     return
             pygame.display.flip()
 
+    # загрузка уровня из файла
     def load_level(self):
         screen.fill('black')
         font = pygame.font.SysFont('Segoe Print', 30)
@@ -700,6 +718,7 @@ class Game:
                             global pl2
                             pl2 = Heroes(20 + j * 24, 80 + i * 24, "water")
 
+    # основной цикл
     def mainloop(self):
         self.running = True
         set_pause = False
@@ -709,7 +728,14 @@ class Game:
         fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         anim = pygame.USEREVENT + 3
         pygame.time.set_timer(anim, 100)
-        self.draw_levels()
+        if "main" not in self.name:
+            with open("levels_info.json") as f:
+                data = json.load(f)
+                data["current_level"] = self.name
+                with open("levels_info.json", "w") as f:
+                    json.dump(data, f)
+        else:
+            self.draw_levels()
         while self.running:
             if self.new_lvl:
                 if not self.cnt_flag:
@@ -775,6 +801,7 @@ class Game:
                         if 137 <= x <= 287 and 490 <= y <= 640:
                             if not sound_flag:
                                 pygame.mixer.music.unpause()
+                            death.stop()
                             return
                         elif 425 <= x <= 575 and 490 <= y <= 640:
                             if not sound_flag:
@@ -911,6 +938,7 @@ class Game:
                 for bar in block:
                     bar.down()
 
+    # создание кнопок в паузе при победе
     def create_btns_win(self, printings):
         screen.fill("black")
         font = pygame.font.SysFont('Segoe print', 75)
@@ -922,6 +950,7 @@ class Game:
         screen.blit(self.set_lvl_mouse if self.col_set_lvl else self.set_lvl, (540, 490))
         screen.blit(self.next_lvl_mouse if self.col_next else self.next_lvl, (770, 490))
 
+    # создание кнопок в паузе при смерти
     def create_btns_lose(self, printings):
         screen.fill("black")
         font = pygame.font.SysFont('Segoe print', 75)
@@ -932,12 +961,14 @@ class Game:
         screen.blit(self.retry_mouse if self.col_retry else self.retry, (425, 490))
         screen.blit(self.set_lvl_mouse if self.col_set_lvl else self.set_lvl, (712, 490))
 
+    # нейтральный цвет для кнопок в меню побед/поражений
     def default_color_w_l(self):
         self.col_exit = False
         self.col_set_lvl = False
         self.col_retry = False
         self.col_next = False
 
+    # подсветка кнопок в меню победы
     def set_col_win(self, x, y):
         if 80 <= x <= 230 and 490 <= y <= 640:
             self.col_exit = True
@@ -950,6 +981,7 @@ class Game:
         else:
             self.default_color_w_l()
 
+    # подсветка кнопок в меню поражения
     def set_col_lose(self, x, y):
         if 137 <= x <= 287 and 490 <= y <= 640:
             self.col_exit = True

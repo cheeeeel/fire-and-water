@@ -9,6 +9,7 @@ from creating_levels import Level
 from game import Game
 
 
+# загрузка изображения
 def load_image(s, key=None):
     name = os.path.join("data", s)
     try:
@@ -30,6 +31,7 @@ def load_image(s, key=None):
     return image
 
 
+# меню игры
 class MainMenu:
     def __init__(self, width, height):
         self.cnt, self.flag_sound = 0, False
@@ -37,9 +39,10 @@ class MainMenu:
         self.save_pos_flag = False
         self.make_inscriptions(width, height)
 
-    def make_inscriptions(self, width, height, col_redactor='white',
-                          col_single='white', col_online='white', col_reset='white', flag_settings=False,
-                          main_lvls_col='white', user_lvls_col='white'):
+    # отображение текста с подсветкой
+    def make_inscriptions(self, width, height, col_redactor=(255, 255, 255),
+                          col_single=(255, 255, 255), col_online=(255, 255, 255), col_reset=(255, 255, 255), flag_settings=False,
+                          main_lvls_col=(255, 255, 255), user_lvls_col=(255, 255, 255)):
         self.start_screen(width, height)
         self.main_font = pygame.font.SysFont('Segoe Print', round(height // 5 * 0.3))
         if not self.flag_sound:
@@ -79,21 +82,7 @@ class MainMenu:
         water = font_for_title.render('Вода', True, (0, 100, 255))
         screen.blit(water, ((width + water.get_width() * 0.7) // 2, round(height // 2.7)))
 
-    def load_image(self, s, key=None):
-        name = os.path.join("data", s)
-        try:
-            image = pygame.image.load(name).convert()
-        except pygame.error as message:
-            print("error with " + s)
-            raise SystemExit(message)
-        if key is not None:
-            if key == -1:
-                key = image.get_at((0, 0))
-                image.set_colorkey(key)
-        else:
-            image = image.convert_alpha()
-        return image
-
+    # обработка нажатий на текст
     def go_next(self, x, y, width, height):
         if width // 75 <= x <= width // 75 + self.txt_redactor.get_width() \
                 and height * 0.92 <= y <= height:
@@ -116,6 +105,7 @@ class MainMenu:
             self.cnt = (self.cnt + 1) % 2
             self.set_music()
 
+    # работа с музыкой
     def set_music(self):
         if self.cnt:
             self.flag_sound = True
@@ -129,6 +119,7 @@ class MainMenu:
             pygame.mixer.music.unpause()
         self.save_pos_flag = True
 
+    # подсветка текста
     def set_color(self, x, y, width, height):
         if width // 75 <= x <= width // 75 + self.txt_redactor.get_width() \
                 and height * 0.92 <= y <= height * 0.99:
@@ -156,6 +147,7 @@ class MainMenu:
                     and 675 <= y <= 675 + self.plot.get_height():
                 self.make_inscriptions(width, height, main_lvls_col='yellow')
 
+    # сброс статистики
     def reset_stat(self):
         with open("levels_info.json") as f1:
             data = json.load(f1)
@@ -165,11 +157,12 @@ class MainMenu:
             with open("levels_info.json", 'w') as f2:
                 json.dump(data, f2)
 
-
+    # начальный экран
     def start_screen(self, width, height):
         fon = pygame.transform.scale(background, (width, height))
         screen.blit(fon, (0, 0))
 
+    # старт игры
     def start_game(self):
         name = self.first_select()
         if name:
@@ -190,6 +183,7 @@ class MainMenu:
                     creating_levels.sound_flag = False
             self.make_inscriptions(1000, 840)
 
+    # нажатие на один комьютер
     def first_select(self):
         self.run = True
         self.make_inscriptions(1000, 840, col_single='yellow')
@@ -206,7 +200,7 @@ class MainMenu:
                     elif event.button == 1 and 550 <= x <= 550 + self.user_levels.get_width() and \
                             750 <= y <= 750 + self.user_levels.get_height():
                         self.run = False
-                        return game.prompt_file()
+                        return game.prompt_file()[-17:]
                     else:
                         self.go_next(*event.pos, 1000, 840)
                 if event.type == pygame.MOUSEMOTION:
@@ -214,6 +208,7 @@ class MainMenu:
                     break
             pygame.display.flip()
 
+    # открытие меню с создание карт
     def creating_levels(self):
         level = Level(40, 31)
         level.flag_sound = self.flag_sound
@@ -228,6 +223,7 @@ class MainMenu:
                 self.flag_sound = False
 
 
+# основной запуск программы
 if __name__ == '__main__':
     save_pos_flag = False
     sound_on_mouse = load_image("music_on_mouse.png", -1)

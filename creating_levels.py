@@ -44,34 +44,40 @@ def load_image(s, key=None):
     return image
 
 
-#
+# основной класс
 class Level:
-    # создание поля
     def __init__(self, width, height):
+        # размер окна
         self.width = width
         self.height = height
-        self.default_color()
+        # шрифт
         self.main_font = pygame.font.SysFont('Segoe Print', 25)
-        # значения по умолчанию
+        # отступы
         self.left = 20
         self.top = 48
+        # размер клетки
         self.cell_size = 24
+        # список объектов
         self.object = ["stone.png", "barrier.png", "activate_button.png",
                        "portal_red.png", "portal_blue.png", "water-block.png",
                        "lava-block.png", "poison-block.png", 'box.png', 'fire-bg.png', 'water-bg.png']
         self.obj_index = 0
+        # булевские константы
         self.counter = 0
         self.flag_end = False
         self.cr_btn = False
         self.running = True
         self.flag_sound = False
-
         self.cnt_flag = 0
+        # поле
         self.board = [['`' for _ in range(height)] for _ in range(width)]
+        # подготовка поля
+        self.default_color()
         self.load_pictures()
         self.current_file = ""
         self.floor()
 
+    # загрузка изображений
     def load_pictures(self):
         self.stone = pygame.transform.scale(load_image("stone.png"), (24, 24))
         self.bar = pygame.transform.scale(load_image("barrier.png"), (24, 24))
@@ -99,15 +105,12 @@ class Level:
         self.exit_info = pygame.transform.scale(load_image('close.png', -1), (75, 75))
         self.exit_info_mouse = pygame.transform.scale(load_image('close_mouse.png', -1), (75, 75))
 
-    # настройка внешнего вида
-    def set_view(self, left, top, cell_size):
-        self.left = left
-        self.top = top
-        self.cell_size = cell_size
-
+    # смена объекта
     def set_object(self, index):
-        return load_image(self.object[index], -1)
+        object = load_image(self.object[index], -1)
+        return object
 
+    # загрузка поля из файлов
     def edit_board(self):
         try:
             name = prompt_file()
@@ -134,6 +137,7 @@ class Level:
         except UnicodeDecodeError as e:
             print(e)
 
+    # присваивает нейтральные цвета
     def default_color(self):
         self.clear_map_color = (255, 255, 255)
         self.change_object_color = (255, 255, 255)
@@ -143,7 +147,6 @@ class Level:
         self.water_color = (255, 0, 0)
         self.box_color = (255, 0, 0)
         self.pause_flag = False
-
 
     # создает виньетку
     def floor(self):
@@ -246,6 +249,7 @@ class Level:
             return
         self.on_click(cell, key_for_bar)
 
+    # отрисовывает картинку + 2 текста
     def set_text(self, screen, photo, font_size, x_size, y_size, txt1,
                  blit_txt_x1, blit_txt_y1, blit_photo_x, blit_photo_y, txt2="", blit_txt_x2=0, blit_txt_y2=0):
         bar = pygame.transform.scale(photo, (x_size, y_size))
@@ -276,6 +280,7 @@ class Level:
         else:
             self.default_color()
 
+    # пауза в игре
     def stop_game(self):
         new_screen = pygame.display.set_mode((1000, 840))
         new_screen.fill("black")
@@ -344,6 +349,7 @@ class Level:
             new_screen.blit(btn_music, (770, 490))
             pygame.display.flip()
 
+    # работа с состояниями музыки
     def set_music(self):
         global sound_flag
         if self.cnt_flag:
@@ -357,6 +363,7 @@ class Level:
             sound_flag = False
             game.sound_flag = True
 
+    # инструкция к игре в паузе
     def do_info(self):
         screen = pygame.display.set_mode((1000, 840))
         screen.fill("black")
@@ -416,6 +423,7 @@ class Level:
         buttons.clear()
         keys_for_btns.clear()
 
+    # сохраняет фаил
     def save(self):
         if self.fire_color == self.water_color == self.box_color == (0, 255, 0):
             field = []
@@ -588,33 +596,22 @@ class Level:
 
     # обработка удаления барьера и кнопки
     def delete_barrier_button(self, coords):
-        for i in list(barriers.keys()):
-            if any(coords == k for k in barriers[i]):
-                for x, y in barriers[i]:
-                    self.board[x][y] = "`"
-                for x, y in buttons[i]:
-                    self.board[x][y] = "`"
-                barriers.pop(i)
-                buttons.pop(i)
-                try:
-                    keys_for_btns.pop(i)
-                except KeyError:
-                    pass
-                return
-        for i in list(buttons.keys()):
-            if any(coords == k for k in buttons[i]):
-                for x, y in barriers[i]:
-                    self.board[x][y] = "`"
-                for x, y in buttons[i]:
-                    self.board[x][y] = "`"
-                barriers.pop(i)
-                buttons.pop(i)
-                try:
-                    keys_for_btns.pop(i)
-                except KeyError:
-                    pass
-                return
+        for k in [barriers.keys(), buttons.keys()]:
+            for i in list(k):
+                if any(coords == k for k in barriers[i]):
+                    for x, y in barriers[i]:
+                        self.board[x][y] = "`"
+                    for x, y in buttons[i]:
+                        self.board[x][y] = "`"
+                    barriers.pop(i)
+                    buttons.pop(i)
+                    try:
+                        keys_for_btns.pop(i)
+                    except KeyError:
+                        pass
+                    return
 
+    # цикл программы
     def mainloop(self, name):
         size = 1000, 840
         screen = pygame.display.set_mode(size)
