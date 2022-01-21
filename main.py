@@ -1,3 +1,5 @@
+import json
+
 import pygame
 import os
 
@@ -36,7 +38,7 @@ class MainMenu:
         self.make_inscriptions(width, height)
 
     def make_inscriptions(self, width, height, col_redactor='white',
-                          col_single='white', col_online='white', flag_settings=False,
+                          col_single='white', col_online='white', col_reset='white', flag_settings=False,
                           main_lvls_col='white', user_lvls_col='white'):
         self.start_screen(width, height)
         self.main_font = pygame.font.SysFont('Segoe Print', round(height // 5 * 0.3))
@@ -57,6 +59,10 @@ class MainMenu:
 
         self.txt_one_pc_btn = self.main_font.render('Один компьютер', True, col_single)
         screen.blit(self.txt_one_pc_btn, (width // 75, height * 0.76))
+
+        reset_font = pygame.font.SysFont('Segoe Print', 20)
+        self.txt_reset_stat = reset_font.render('Сбросить статистику', True, col_reset)
+        screen.blit(self.txt_reset_stat, (width // 1.34, height * 0.962))
         if self.run:
             self.font = pygame.font.SysFont('Segoe Print', 40)
             self.plot = self.font.render('Сюжетные уровни', True, main_lvls_col)
@@ -101,6 +107,9 @@ class MainMenu:
                 and height * 0.85 <= y <= height * 0.91:
             self.run = False
             print("""Coming soon""")
+        elif width // 1.34 <= x <= width // 1.34 + self.txt_reset_stat.get_width() \
+                and height * 0.962 <= y <= height * 0.962 + self.txt_reset_stat.get_height():
+            self.reset_stat()
         elif width * 0.89 <= x <= width * 0.89 + width // 10 \
                 and height // 75 <= y <= height // 75 + height // 8:
             self.run = False
@@ -130,6 +139,9 @@ class MainMenu:
         elif width // 75 <= x <= width // 75 + self.txt_online_btn.get_width() \
                 and height * 0.85 <= y <= height * 0.9:
             self.make_inscriptions(width, height, col_online='yellow')
+        elif width // 1.34 <= x <= width // 1.34 + self.txt_reset_stat.get_width() \
+                and height * 0.962 <= y <= height * 0.962 + self.txt_reset_stat.get_height():
+            self.make_inscriptions(width, height, col_reset='yellow')
         elif width * 0.89 <= x <= width * 0.89 + width // 10 \
                 and height // 75 <= y <= height // 75 + height // 8:
             self.make_inscriptions(width, height, flag_settings=True)
@@ -138,11 +150,21 @@ class MainMenu:
             self.make_inscriptions(width, height)
         if self.run:
             if 550 <= x <= 550 + self.user_levels.get_width() \
-                    and 750 <= y <= 750 + self.user_levels.get_width():
+                    and 750 <= y <= 750 + self.user_levels.get_height():
                 self.make_inscriptions(width, height, user_lvls_col='yellow')
             elif 550 <= x <= 550 + self.plot.get_width() \
-                    and 675 <= y <= 675 + self.plot.get_width():
+                    and 675 <= y <= 675 + self.plot.get_height():
                 self.make_inscriptions(width, height, main_lvls_col='yellow')
+
+    def reset_stat(self):
+        with open("levels_info.json") as f1:
+            data = json.load(f1)
+            data["current_level"] = "main_levels/1.txt"
+            for i in range(2, 11):
+                data[f"level_{i}"] = "locked"
+            with open("levels_info.json", 'w') as f2:
+                json.dump(data, f2)
+
 
     def start_screen(self, width, height):
         fon = pygame.transform.scale(background, (width, height))

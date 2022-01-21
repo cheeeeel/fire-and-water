@@ -136,7 +136,6 @@ class Heroes(pygame.sprite.Sprite):
             self.rect = self.rect.move(0, 200 / fps)
         for block in barriers:
             for bar in block:
-                print(pl1.on_button or pl2.on_button or box1.on_button)
                 if pygame.sprite.collide_mask(self, bar) and not bar.bar_max and \
                         (pl1.on_button or pl2.on_button or box1.on_button) and not self.under_bar:
                     self.rect = self.rect.move(0, - 120 / fps)
@@ -363,6 +362,8 @@ class Game:
         self.col_next = False
         self.col_exit = False
         self.new_lvl = True
+        self.win = False
+        self.death = False
         self.barriers_cords = []
         self.buttons_cords = []
         self.barriers = []
@@ -420,6 +421,8 @@ class Game:
         barriers_cords.clear()
         barriers.clear()
         buttons.clear()
+        self.final_screen_win = False
+        self.final_screen_lose = False
 
     def stop_game(self):
         new_screen = pygame.display.set_mode((1000, 840))
@@ -601,15 +604,14 @@ class Game:
                         text = font.render(str(n), True, (255, 255, 254))
                         pygame.draw.rect(screen, color=(15, 82, 186), rect=(left + 190 * k, top + 200 * i, 140, 140),
                                          border_radius=40)
-                        screen.blit(text, (left + 190 * k + 40, top + 200 * i - 20))
                     else:
                         text = font.render(str(n), True, (255, 255, 255))
                         pygame.draw.rect(screen, color=(128, 128, 128), rect=(left + 190 * k, top + 200 * i, 140, 140),
                                          border_radius=40)
-                        if n == 10:
-                            screen.blit(text, (left + 190 * k - 5, top + 200 * i - 20))
-                        else:
-                            screen.blit(text, (left + 190 * k + 40, top + 200 * i - 20))
+                    if n == 10:
+                        screen.blit(text, (left + 190 * k - 5, top + 200 * i - 20))
+                    else:
+                        screen.blit(text, (left + 190 * k + 40, top + 200 * i - 20))
                     n += 1
         run = True
         while run:
@@ -754,7 +756,14 @@ class Game:
                                 pygame.mixer.music.unpause()
                             self.draw_levels()
                         elif 770 <= x <= 920 and 490 <= y <= 640:
-                            """"""
+                            self.new_lvl = True
+                            with open("levels_info.json") as f:
+                                data = json.load(f)
+                                data2 = data["current_level"].split("/")
+                                data["current_level"] = data2[0] \
+                                                            + '/' + str(int(data2[1][0]) + 1) + ".txt"
+                                with open("levels_info.json", "w") as f2:
+                                    json.dump(data, f2)
                     elif self.final_screen_lose:
                         if 137 <= x <= 287 and 490 <= y <= 640:
                             if not sound_flag:
@@ -766,7 +775,10 @@ class Game:
                             self.final_screen_lose = False
                             self.new_lvl = True
                         elif 712 <= x <= 862 and 490 <= y <= 640:
-                            """что-то с меню"""
+                            win_end.stop()
+                            if not sound_flag:
+                                pygame.mixer.music.unpause()
+                            self.draw_levels()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         pygame.time.set_timer(water_jumping_start, 650)
@@ -822,19 +834,20 @@ class Game:
                 for i in [pl1, pl2, box1]:
                     if i.index[0] != -100 and i.index not in ind:
                         ind.append(i.index)
-                for x, y in ind:
-                    buttons[x][y].down()
-                    block = barriers[x]
-                    for bar in block:
-                        bar.up()
-                for x in range(len(buttons)):
-                    for y in range(len(buttons[x])):
-                        if (x, y) not in ind:
-                            buttons[x][y].up()
-                for x in range(len(barriers)):
-                    if x not in [j[0] for j in ind]:
-                        for bar in barriers[x]:
-                            bar.down()
+                if buttons:
+                    for x, y in ind:
+                        buttons[x][y].down()
+                        block = barriers[x]
+                        for bar in block:
+                            bar.up()
+                    for x in range(len(buttons)):
+                        for y in range(len(buttons[x])):
+                            if (x, y) not in ind:
+                                buttons[x][y].up()
+                    for x in range(len(barriers)):
+                        if x not in [j[0] for j in ind]:
+                            for bar in barriers[x]:
+                                bar.down()
             else:
                 self.bar_move()
             pl1.music_flag = self.cnt_flag
@@ -842,7 +855,6 @@ class Game:
             if pl1.lose or pl2.lose:
                 if not self.cnt_flag:
                     death.play(fade_ms=100)
-                    # death.set_volume(0)
                     pygame.mixer.music.pause()
                 self.create_btns_lose(['Попробуйте снова'])
                 pygame.display.flip()
@@ -855,7 +867,7 @@ class Game:
                 self.create_btns_win(["Mission completed", "respect+"])
                 with open("levels_info.json") as f1:
                     data = json.load(f1)
-                    data[f"level_{data['current_level'].split('.')[0]}"] = "opened"
+                    data[f"level_{int(data['current_level'].split('/')[1][0]) + 1}"] = "opened"
                     with open("levels_info.json", "w") as f2:
                         json.dump(data, f2)
 
