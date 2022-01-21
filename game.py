@@ -635,6 +635,9 @@ class Game:
                             size = 1000, 840
                             pygame.display.set_mode(size)
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    size = 1000, 840
+                    pygame.display.set_mode(size)
+                    self.running = False
                     return
             pygame.display.flip()
 
@@ -709,6 +712,10 @@ class Game:
         self.draw_levels()
         while self.running:
             if self.new_lvl:
+                if not self.cnt_flag:
+                    death.stop()
+                    win_end.stop()
+                    pygame.mixer.music.unpause()
                 self.default()
                 self.default_color_w_l()
                 self.load_level()

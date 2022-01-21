@@ -4,15 +4,17 @@ import tkinter.filedialog
 
 import game
 
+# const
 barriers = {}
 buttons = {}
 keys_for_btns = {}
 sound_flag = None
 
 
+# меню выбора файла из проводника
 def prompt_file():
     top = tkinter.Tk()
-    top.withdraw()  # hide window
+    top.withdraw()
     file_name = tkinter.filedialog.askopenfilename(parent=top, filetypes=(("text files", "*.txt"),),
                                                    title="Выберите уровень",
                                                    initialdir="levels/", multiple=False)
@@ -20,6 +22,7 @@ def prompt_file():
     return file_name
 
 
+# загрузка изображения
 def load_image(s, key=None):
     name = os.path.join("data", s)
     try:
@@ -41,6 +44,7 @@ def load_image(s, key=None):
     return image
 
 
+#
 class Level:
     # создание поля
     def __init__(self, width, height):
