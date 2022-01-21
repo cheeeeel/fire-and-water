@@ -240,7 +240,7 @@ if __name__ == '__main__':
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
+                running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 main.go_next(*event.pos, *size)
                 if not main.save_pos_flag:
