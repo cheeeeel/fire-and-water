@@ -41,7 +41,8 @@ class MainMenu:
 
     # отображение текста с подсветкой
     def make_inscriptions(self, width, height, col_redactor=(255, 255, 255),
-                          col_single=(255, 255, 255), col_online=(255, 255, 255), col_reset=(255, 255, 255), flag_settings=False,
+                          col_single=(255, 255, 255), col_online=(255, 255, 255),
+                          col_reset=(255, 255, 255), flag_settings=False,
                           main_lvls_col=(255, 255, 255), user_lvls_col=(255, 255, 255)):
         self.start_screen(width, height)
         self.main_font = pygame.font.SysFont('Segoe Print', round(height // 5 * 0.3))
