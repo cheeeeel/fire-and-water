@@ -400,7 +400,6 @@ class Game:
         self.pause_mouse = load_image('pause_mouse.png', -1)
 
     def default(self):
-        global buttons_cords, barriers_cords, barriers, buttons
         all_sprites.empty()
         platforms.empty()
         heroes.empty()
@@ -412,7 +411,10 @@ class Game:
         water.empty()
         lava.empty()
         poison.empty()
-        buttons_cords, barriers_cords, barriers, buttons = [], [], [], []
+        buttons_cords.clear()
+        barriers_cords.clear()
+        barriers.clear()
+        buttons.clear()
 
     def stop_game(self):
         new_screen = pygame.display.set_mode((1000, 840))
