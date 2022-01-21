@@ -183,6 +183,7 @@ class Heroes(pygame.sprite.Sprite):
         if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
             self.rect = self.rect.move(-(200 / fps), 0)
         self.rect = self.rect.move(4, 5)
+
     # прыжок
     def jump(self):
         self.rect = self.rect.move(0, -5)
@@ -645,8 +646,8 @@ class Game:
                         with open("levels_info.json") as f:
                             data = json.load(f)
                             data["current_level"] = f"main_levels/{x + y * 5}.txt"
-                            with open("levels_info.json", "w") as f:
-                                json.dump(data, f)
+                            with open("levels_info.json", "w") as f2:
+                                json.dump(data, f2)
                             run = False
                             self.new_lvl = True
                             size = 1000, 840
@@ -662,8 +663,8 @@ class Game:
     def load_level(self):
         screen.fill('black')
         font = pygame.font.SysFont('Segoe Print', 30)
-        with open("levels_info.json") as f:
-            name = json.load(f)["current_level"]
+        with open("levels_info.json") as f2:
+            name = json.load(f2)["current_level"]
             level_text = font.render(f'Уровень {name.split("/")[1][0]}', True, (255, 255, 255))
             screen.blit(level_text, (20, 10))
             with open(name) as f:
@@ -732,8 +733,8 @@ class Game:
             with open("levels_info.json") as f:
                 data = json.load(f)
                 data["current_level"] = self.name
-                with open("levels_info.json", "w") as f:
-                    json.dump(data, f)
+                with open("levels_info.json", "w") as f2:
+                    json.dump(data, f2)
         else:
             self.draw_levels()
         while self.running:
