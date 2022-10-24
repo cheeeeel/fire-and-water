@@ -36,7 +36,8 @@ class MainMenu:
     def __init__(self, width, height):
         self.cnt, self.flag_sound = 0, False
         self.run = False
-        self.save_pos_flag = False
+        self.save_pos_flag_settings = False
+        self.save_pos_flag_del = False
         self.make_inscriptions(width, height)
 
     # отображение текста с подсветкой
@@ -100,6 +101,7 @@ class MainMenu:
         elif width // 1.34 <= x <= width // 1.34 + self.txt_reset_stat.get_width() \
                 and height * 0.962 <= y <= height * 0.962 + self.txt_reset_stat.get_height():
             self.reset_stat()
+            self.save_pos_flag_del = True
         elif width * 0.89 <= x <= width * 0.89 + width // 10 \
                 and height // 75 <= y <= height // 75 + height // 8:
             self.run = False
@@ -118,7 +120,7 @@ class MainMenu:
             game.sound_flag = False
             creating_levels.sound_flag = False
             pygame.mixer.music.unpause()
-        self.save_pos_flag = True
+        self.save_pos_flag_settings = True
 
     # подсветка текста
     def set_color(self, x, y, width, height):
@@ -138,7 +140,8 @@ class MainMenu:
                 and height // 75 <= y <= height // 75 + height // 8:
             self.make_inscriptions(width, height, flag_settings=True)
         else:
-            self.save_pos_flag = False
+            self.save_pos_flag_settings = False
+            self.save_pos_flag_del = False
             self.make_inscriptions(width, height)
         if self.run:
             if 550 <= x <= 550 + self.user_levels.get_width() \
@@ -191,6 +194,7 @@ class MainMenu:
         while self.run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    pygame.quit()
                     exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
@@ -241,13 +245,16 @@ if __name__ == '__main__':
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                pygame.quit()
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 main.go_next(*event.pos, *size)
-                if not main.save_pos_flag:
-                    main.make_inscriptions(*size)
-                else:
+                if main.save_pos_flag_settings:
                     main.make_inscriptions(*size, flag_settings=True)
+                elif main.save_pos_flag_del:
+                    main.make_inscriptions(*size, col_reset='yellow')
+                else:
+                    main.make_inscriptions(*size)
             if event.type == pygame.MOUSEMOTION:
                 main.set_color(*event.pos, *size)
         pygame.display.flip()

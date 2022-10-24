@@ -18,9 +18,9 @@ pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(0.1)
 jump = pygame.mixer.Sound("sounds/jump.ogg")
 jump.set_volume(0.5)
-death = pygame.mixer.Sound("sounds/death.ogg")
+death = pygame.mixer.Sound("sounds/death.wav")
 death.set_volume(0.5)
-win_end = pygame.mixer.Sound("sounds/win2.ogg")
+win_end = pygame.mixer.Sound("sounds/win.wav")
 win_end.set_volume(0.5)
 
 # работа с окном
@@ -44,6 +44,8 @@ blue_portal = pygame.sprite.Group()
 water = pygame.sprite.Group()
 lava = pygame.sprite.Group()
 poison = pygame.sprite.Group()
+fake_bars = pygame.sprite.Group()
+fake_platforms = pygame.sprite.Group()
 water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
 
@@ -71,6 +73,9 @@ def load_image(s, key=None):
 
 
 PL = load_image("stone.png")
+lava_block = load_image('lava-block.png')
+water_block = load_image('water-block.png')
+poison_block = load_image('poison-block.png')
 
 
 # меню выбора файла из проводника
@@ -99,7 +104,7 @@ class Heroes(pygame.sprite.Sprite):
             self.cut_sheet(load_image("water-sheet1.png", -1), 5, 2)
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
-        self.image = pygame.transform.scale(self.image, (50, 80))
+        self.image = pygame.transform.scale(self.image, (48, 80))
         self.rect.x = x
         self.rect.y = y
         self.jump_flag = False
@@ -135,6 +140,8 @@ class Heroes(pygame.sprite.Sprite):
 
     # гравитация
     def update(self):
+        if self.rect.y >= 824:
+            self.lose = True
         if not pygame.sprite.spritecollideany(self, platforms) \
                 and not pygame.sprite.spritecollideany(self, boxes) and not \
                 pygame.sprite.spritecollideany(self, bars) and not pygame.sprite.spritecollideany(self, btns) \
@@ -143,7 +150,8 @@ class Heroes(pygame.sprite.Sprite):
         for block in barriers:
             for bar in block:
                 if pygame.sprite.collide_mask(self, bar) and not bar.bar_max and \
-                        (pl1.on_button or pl2.on_button or box1.on_button) and not self.under_bar:
+                        (pl1.on_button or pl2.on_button or box1.on_button) and not \
+                        self.under_bar and not bar.bar_min:
                     self.rect = self.rect.move(0, - 120 / fps)
                     break
         if (self.hero == "fire" and pygame.sprite.spritecollideany(self, red_portal)) or \
@@ -155,8 +163,6 @@ class Heroes(pygame.sprite.Sprite):
                 self.hero == "water" and pygame.sprite.spritecollideany(self, lava) or \
                 pygame.sprite.spritecollideany(self, poison):
             self.lose = True
-            # if not self.music_flag:
-            #     death.play()
 
         for block in buttons_cords:
             for i, j in block:
@@ -173,15 +179,27 @@ class Heroes(pygame.sprite.Sprite):
     # движение вправо
     def right(self):
         self.rect = self.rect.move(4, -5)
-        if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
+        box1.rect = box1.rect.move(0, -5)
+        if not pygame.sprite.spritecollideany(self, platforms) \
+                and not pygame.sprite.spritecollideany(self, bars) \
+                and not (pygame.sprite.spritecollideany(self, boxes)
+                         and abs(self.rect.y - box1.rect.y + 45) <= 5
+                         and pygame.sprite.spritecollideany(box1, platforms)):
             self.rect = self.rect.move(200 / fps, 0)
+        box1.rect = box1.rect.move(0, 5)
         self.rect = self.rect.move(-4, 5)
 
     # движение влево
     def left(self):
         self.rect = self.rect.move(-4, -5)
-        if not pygame.sprite.spritecollideany(self, platforms) and not pygame.sprite.spritecollideany(self, bars):
+        box1.rect = box1.rect.move(-4, -5)
+        if not pygame.sprite.spritecollideany(self, platforms) \
+                and not pygame.sprite.spritecollideany(self, bars) \
+                and not (pygame.sprite.spritecollideany(self, boxes)
+                         and abs(self.rect.y - box1.rect.y + 45) <= 5
+                         and pygame.sprite.spritecollideany(box1, platforms)):
             self.rect = self.rect.move(-(200 / fps), 0)
+        box1.rect = box1.rect.move(4, 5)
         self.rect = self.rect.move(4, 5)
 
     # прыжок
@@ -227,6 +245,12 @@ class Box(pygame.sprite.Sprite):
 
     # гравитация и коллизия
     def update(self):
+        for block in barriers:
+            for bar in block:
+                if pygame.sprite.collide_mask(self, bar) and not bar.bar_max and \
+                        (pl1.on_button or pl2.on_button or box1.on_button) and not bar.bar_min:
+                    self.rect = self.rect.move(0, - 120 / fps)
+                    break
         if not pygame.sprite.spritecollideany(self, platforms) and \
                 not pygame.sprite.spritecollideany(self, bars) and \
                 not pygame.sprite.spritecollideany(self, btns):
@@ -234,12 +258,11 @@ class Box(pygame.sprite.Sprite):
         for block in buttons_cords:
             for x, y in block:
                 if (x - 0.5) * 24 <= self.rect.x - 20 <= (x + 1) * 24 and \
-                        y * 24 <= self.rect.y - 45 <= (y + 1) * 24:
-                    self.rect = self.rect.move(0, 200 / fps)
+                        y * 24 <= self.rect.y - 33 <= (y + 1) * 24:
                     self.on_button = True
                     ind_bl = buttons_cords.index(block)
                     self.index = (ind_bl, buttons_cords[ind_bl].index((x, y)))
-                    break
+                    return
                 else:
                     self.on_button = False
                     self.index = (-100, -100)
@@ -281,10 +304,13 @@ class Barrier(pygame.sprite.Sprite):
         all_sprites.add(self)
         self.mask = pygame.mask.from_surface(self.image)
         self.bar_max = False
-        self.move_down = False
+        self.down_motion = False
+        self.bar_min = False
 
     # подъем вверх
     def up(self):
+        self.down_motion = False
+        self.bar_min = False
         if self.rect.y > self.start_rect - 120:
             self.rect.y -= 120 / fps
             self.bar_max = False
@@ -293,11 +319,42 @@ class Barrier(pygame.sprite.Sprite):
 
     # подъем вниз
     def down(self):
-        if self.rect.y < self.start_rect:
-            self.rect.y += 120 / fps
-            self.move_down = True
-        else:
-            self.move_down = False
+        if not (pl1.under_bar and pl2.under_bar):
+            self.down_motion = True
+            self.bar_max = False
+            if self.rect.y < self.start_rect:
+                self.rect.y += 120 / fps
+                self.bar_min = False
+            else:
+                self.bar_min = True
+
+
+class FakeBarrier(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.add(fake_bars)
+        self.image = load_image("barrier.png")
+        self.image = pygame.transform.scale(self.image, (24, 24))
+        self.rect = self.image.get_rect()
+        self.start_rect = y
+        self.rect.x = x
+        self.rect.y = y
+        all_sprites.add(self)
+        self.mask = pygame.mask.from_surface(self.image)
+
+
+class FakePlatform(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.add(fake_platforms)
+        self.image = PL
+        self.image = pygame.transform.scale(self.image, (24, 24))
+        self.rect = self.image.get_rect()
+        self.start_rect = y
+        self.rect.x = x
+        self.rect.y = y
+        all_sprites.add(self)
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 # Создание кнопки, активирующей движения барера
@@ -340,28 +397,46 @@ class Portal(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
 
+class Final(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__(all_sprites)
+        self.image = load_image('final.png', -1)
+        self.image = pygame.transform.scale(self.image, (96, 96))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.add(blue_portal), self.add(red_portal)
+        self.mask = pygame.mask.from_surface(self.image)
+
+
 # жидкости
 class Liquids(pygame.sprite.Sprite):
     def __init__(self, x, y, type_of):
-        super().__init__()
+        super().__init__(all_sprites)
         if type_of == "lava":
+            self.image = lava_block
             self.add(lava)
+            self.add(lava)
+            self.image = lava_block
         elif type_of == "water":
+            self.image = water_block
             self.add(water)
-        elif type_of == "poison":
+            self.add(water)
+        else:
+            self.image = poison_block
             self.add(poison)
-        self.image = load_image(f"{type_of}-block.png", -1)
+            self.add(poison)
         self.image = pygame.transform.scale(self.image, (24, 12))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        all_sprites.add(self)
         self.mask = pygame.mask.Mask(size=(self.rect.x, 12))
 
 
 # загрузка уровня
 class Game:
     def __init__(self, name):
+        self.fon = ''
         self.name = name
         self.running = True
         self.cnt_flag = 0
@@ -375,6 +450,7 @@ class Game:
         self.new_lvl = True
         self.win = False
         self.death = False
+        self.final_win = False
         self.barriers_cords = []
         self.buttons_cords = []
         self.barriers = []
@@ -434,6 +510,8 @@ class Game:
         barriers_cords.clear()
         barriers.clear()
         buttons.clear()
+        fake_platforms.empty()
+        fake_platforms.empty()
         self.final_screen_win = False
         self.final_screen_lose = False
 
@@ -449,6 +527,7 @@ class Game:
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    pygame.quit()
                     exit()
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
@@ -590,6 +669,7 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
+                    exit()
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
                     if 900 <= x <= 975 and 25 <= y <= 100:
@@ -635,6 +715,7 @@ class Game:
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    pygame.quit()
                     exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     x, y = event.pos
@@ -665,7 +746,14 @@ class Game:
         font = pygame.font.SysFont('Segoe Print', 30)
         with open("levels_info.json") as f2:
             name = json.load(f2)["current_level"]
-            level_text = font.render(f'Уровень {name.split("/")[1][0]}', True, (255, 255, 255))
+            if 'user' not in name:
+                num = name.split('/')[1][:name.split('/')[1].index('.')]
+            else:
+                num = name[name.index('_') + 1:name.index('.')]
+            if num == '10':
+                self.final_win = True
+            self.fon = pygame.transform.scale(pygame.image.load(f'caves/{num}.jpg'), (926, 720))
+            level_text = font.render(f"Уровень {num}", True, (255, 255, 255))
             screen.blit(level_text, (20, 10))
             with open(name) as f:
                 rows = f.readlines()
@@ -693,20 +781,29 @@ class Game:
                     for j in range(len(rows[i])):
                         if rows[i][j] == "a":
                             Platform(20 + j * 24, 80 + i * 24)
-                        elif rows[i][j] == "d":
-                            Portal(20 + j * 24, 80 + i * 24, "red")
-                        elif rows[i][j] == "e":
-                            Portal(20 + j * 24, 80 + i * 24, "blue")
                         elif rows[i][j] in ["c", "f", "g", "h"]:
                             Platform(20 + j * 24, 92 + i * 24, True)
                             if rows[i][j] == 'c':
                                 Platform(20 + (j + 1) * 24, 92 + i * 24, True)
-                            elif rows[i][j] == "h":
-                                Liquids(20 + j * 24, 80 + i * 24, "poison")
-                            elif rows[i][j] == 'f':
-                                Liquids(20 + j * 24, 80 + i * 24, "water")
-                            elif rows[i][j] == "g":
-                                Liquids(20 + j * 24, 80 + i * 24, "lava")
+                            else:
+                                if rows[i][j] == "h":
+                                    name = "poison"
+                                elif rows[i][j] == 'f':
+                                    name = "water"
+                                else:
+                                    name = "lava"
+                                Liquids(20 + j * 24, 80 + i * 24, name)
+                        elif rows[i][j] == "d":
+                            Portal(20 + j * 24, 80 + i * 24, "red")
+                        elif rows[i][j] == "e":
+                            Portal(20 + j * 24, 80 + i * 24, "blue")
+                        elif rows[i][j] == 'b' and all([True if (j, i) not in block else False
+                                                        for block in barriers_cords]):
+                            FakeBarrier(20 + j * 24, 80 + i * 24)
+                        elif rows[i][j] == 'z':
+                            FakePlatform(20 + j * 24, 80 + i * 24)
+                        elif rows[i][j] == 'm':
+                            Final(20 + j * 24, 80 + i * 24)
                 for i in range(len(rows[:rows.index('\n')])):
                     for j in range(len(rows[i])):
                         if rows[i][j] == "i":
@@ -726,7 +823,6 @@ class Game:
         font = pygame.font.SysFont('Segoe Print', 30)
         level_text = font.render('Уровень 1', True, (255, 255, 255))
         screen.blit(level_text, (20, 10))
-        fon = pygame.transform.scale(load_image('fon_for_game.png'), (926, 720))
         anim = pygame.USEREVENT + 3
         pygame.time.set_timer(anim, 100)
         if "main" not in self.name:
@@ -749,6 +845,7 @@ class Game:
                 self.new_lvl = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    pygame.quit()
                     exit()
                 if event.type == pygame.MOUSEMOTION:
                     x, y = event.pos
@@ -793,34 +890,37 @@ class Game:
                             self.new_lvl = True
                             with open("levels_info.json") as f:
                                 data = json.load(f)
-                                data2 = data["current_level"].split("/")
-                                data["current_level"] = data2[0] \
-                                                            + '/' + str(int(data2[1][0]) + 1) + ".txt"
+                                text = data["current_level"]
+                                num = int(text[text.index('/') + 1:text.index('.')])
+                                data["current_level"] = f'main_levels/{num + 1}.txt'
                                 with open("levels_info.json", "w") as f2:
                                     json.dump(data, f2)
+                                pl1.in_portal = False
+                                pl2.in_portal = False
                     elif self.final_screen_lose:
                         if 137 <= x <= 287 and 490 <= y <= 640:
+                            death.stop()
                             if not sound_flag:
                                 pygame.mixer.music.unpause()
-                            death.stop()
                             return
                         elif 425 <= x <= 575 and 490 <= y <= 640:
+                            death.stop()
                             if not sound_flag:
                                 pygame.mixer.music.unpause()
                             self.final_screen_lose = False
                             self.new_lvl = True
                         elif 712 <= x <= 862 and 490 <= y <= 640:
-                            win_end.stop()
+                            death.stop()
                             if not sound_flag:
                                 pygame.mixer.music.unpause()
                             self.draw_levels()
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
+                    if event.key == pygame.K_UP and self.jump_test(pl2):
                         pygame.time.set_timer(water_jumping_start, 650)
                         if not self.cnt_flag:
                             jump.play()
                         pl2.jump_flag = True
-                    if event.key == pygame.K_w:
+                    if event.key in [pygame.K_w, pygame.K_SPACE] and self.jump_test(pl1):
                         pygame.time.set_timer(fire_jumping_start, 650)
                         if not self.cnt_flag:
                             jump.play()
@@ -865,6 +965,7 @@ class Game:
             if pl2.jump_flag and not pl2.under_bar:
                 pl2.jump()
             if pl1.on_button or pl2.on_button or box1.on_button:
+                pl1.under_bar, pl2.under_bar = False, False
                 ind = []
                 for i in [pl1, pl2, box1]:
                     if i.index[0] != -100 and i.index not in ind:
@@ -887,17 +988,23 @@ class Game:
                 self.bar_move()
             pl1.music_flag = self.cnt_flag
             pl2.music_flag = self.cnt_flag
-            if pl1.lose or pl2.lose:
+            if self.final_win and pl1.in_portal and pl2.in_portal:
                 if not self.cnt_flag:
-                    death.play(fade_ms=100)
+                    win_end.play()
                     pygame.mixer.music.pause()
-                self.create_btns_lose(['Попробуйте снова'])
+                self.create_btns_lose(['Ты потрясающий'])
+                pygame.display.flip()
+                self.final_screen_lose = True
+            elif pl1.lose or pl2.lose:
+                if not self.cnt_flag:
+                    death.play()
+                    pygame.mixer.music.pause()
+                self.create_btns_lose(['Попробуй снова'])
                 pygame.display.flip()
                 self.final_screen_lose = True
             elif pl1.in_portal and pl2.in_portal:
                 if not self.cnt_flag:
-                    win_end.play(fade_ms=100)
-                    # win_end.set_volume(0)
+                    win_end.play()
                     pygame.mixer.music.pause()
                 self.create_btns_win(["Mission completed", "respect+"])
                 with open("levels_info.json") as f1:
@@ -905,11 +1012,10 @@ class Game:
                     data[f"level_{int(data['current_level'].split('/')[1][0]) + 1}"] = "opened"
                     with open("levels_info.json", "w") as f2:
                         json.dump(data, f2)
-
                 pygame.display.flip()
                 self.final_screen_win = True
             else:
-                screen.blit(fon, (44, 104))
+                screen.blit(self.fon, (44, 104))
                 all_sprites.update()
                 all_sprites.draw(screen)
                 setting_image = pygame.transform.scale(self.pause
@@ -918,18 +1024,33 @@ class Game:
                 pygame.display.flip()
                 clock.tick(fps)
 
+    def jump_test(self, hero):
+        if pygame.sprite.spritecollideany(hero, platforms) or \
+                pygame.sprite.spritecollideany(hero, bars) or \
+                pygame.sprite.spritecollideany(hero, btns) or \
+                pygame.sprite.spritecollideany(hero, boxes) or \
+                pygame.sprite.spritecollideany(hero, lava) or \
+                pygame.sprite.spritecollideany(hero, water) or \
+                pygame.sprite.spritecollideany(hero, poison):
+            return True
+        else:
+            return False
+
     def bar_move(self):
         for block in buttons:
             for btn in block:
                 btn.up()
         for block in barriers:
+            s = []
             for bar in block:
-                if pygame.sprite.collide_mask(bar, pl1) and bar.move_down \
-                        or pygame.sprite.spritecollideany(bar, boxes):
+                s.append(bar.rect.y)
+            for bar in block:
+                if pygame.sprite.collide_mask(bar, pl1) and \
+                        pl1.rect.y + 40 >= max(s) + 24 >= pl1.rect.y and bar.down_motion:
                     pl1.under_bar = True
                     return
-                elif pygame.sprite.collide_mask(bar, pl2) and bar.move_down \
-                        or pygame.sprite.spritecollideany(bar, boxes):
+                elif pygame.sprite.collide_mask(bar, pl2) and \
+                        pl2.rect.y + 40 >= max(s) + 24 >= pl2.rect.y and bar.down_motion:
                     pl2.under_bar = True
                     return
                 else:
