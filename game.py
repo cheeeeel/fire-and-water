@@ -3,6 +3,7 @@ import os
 import tkinter.filedialog
 import json
 import creating_levels
+import random
 
 # const
 barriers_cords = []
@@ -430,7 +431,7 @@ class Liquids(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.mask = pygame.mask.Mask(size=(self.rect.x, 12))
+        #self.mask = pygame.mask.Mask(size=(self.rect.x, 12))
 
 
 # загрузка уровня
@@ -451,6 +452,7 @@ class Game:
         self.win = False
         self.death = False
         self.final_win = False
+        self.user_lvl = False
         self.barriers_cords = []
         self.buttons_cords = []
         self.barriers = []
@@ -711,6 +713,11 @@ class Game:
                     else:
                         screen.blit(text, (left + 190 * k + 40, top + 200 * i - 20))
                     n += 1
+            pygame.draw.rect(screen, color=(225, 10, 10), rect=(950, 10, 40, 40),
+                             border_radius=10)
+            font = pygame.font.SysFont('Segoe print', 40)
+            text = font.render("X", True, (255, 255, 255))
+            screen.blit(text, (955, -7))
         run = True
         while run:
             for event in pygame.event.get():
@@ -733,6 +740,11 @@ class Game:
                             self.new_lvl = True
                             size = 1000, 840
                             pygame.display.set_mode(size)
+                    elif 950 <= x <= 990 and 10 <= y <= 50:
+                        size = 1000, 840
+                        pygame.display.set_mode(size)
+                        self.running = False
+                        return
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     size = 1000, 840
                     pygame.display.set_mode(size)
@@ -752,6 +764,8 @@ class Game:
                 num = name[name.index('_') + 1:name.index('.')]
             if num == '10':
                 self.final_win = True
+            if "user" in name:
+                self.user_lvl = True
             self.fon = pygame.transform.scale(pygame.image.load(f'caves/{num}.jpg'), (926, 720))
             level_text = font.render(f"Уровень {num}", True, (255, 255, 255))
             screen.blit(level_text, (20, 10))
@@ -823,8 +837,8 @@ class Game:
         font = pygame.font.SysFont('Segoe Print', 30)
         level_text = font.render('Уровень 1', True, (255, 255, 255))
         screen.blit(level_text, (20, 10))
-        anim = pygame.USEREVENT + 3
-        pygame.time.set_timer(anim, 100)
+        anim = pygame.USEREVENT + 4
+        pygame.time.set_timer(anim, 150)
         if "main" not in self.name:
             with open("levels_info.json") as f:
                 data = json.load(f)
@@ -945,7 +959,6 @@ class Game:
                         pl2.jump_flag = False
                 if event.type == anim:
                     pl1.animation()
-                    pygame.time.set_timer(anim, 100)
                     pl2.animation()
             keys = pygame.key.get_pressed()
             if keys[pygame.K_d]:
@@ -988,7 +1001,7 @@ class Game:
                 self.bar_move()
             pl1.music_flag = self.cnt_flag
             pl2.music_flag = self.cnt_flag
-            if self.final_win and pl1.in_portal and pl2.in_portal:
+            if self.final_win or self.user_lvl and pl1.in_portal and pl2.in_portal:
                 if not self.cnt_flag:
                     win_end.play()
                     pygame.mixer.music.pause()
@@ -1007,11 +1020,14 @@ class Game:
                     win_end.play()
                     pygame.mixer.music.pause()
                 self.create_btns_win(["Mission completed", "respect+"])
-                with open("levels_info.json") as f1:
-                    data = json.load(f1)
-                    data[f"level_{int(data['current_level'].split('/')[1][0]) + 1}"] = "opened"
-                    with open("levels_info.json", "w") as f2:
-                        json.dump(data, f2)
+                try:
+                    with open("levels_info.json") as f1:
+                        data = json.load(f1)
+                        data[f"level_{int(data['current_level'].split('/')[1][0]) + 1}"] = "opened"
+                        with open("levels_info.json", "w") as f2:
+                            json.dump(data, f2)
+                except ValueError:
+                    pass
                 pygame.display.flip()
                 self.final_screen_win = True
             else:
