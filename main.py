@@ -38,11 +38,14 @@ class MainMenu:
         self.run = False
         self.save_pos_flag_settings = False
         self.save_pos_flag_del = False
+        self.music_val = "10%"
+        self.vol = 10
         self.make_inscriptions(width, height)
 
     # отображение текста с подсветкой
     def make_inscriptions(self, width, height, col_redactor=(255, 255, 255),
                           col_single=(255, 255, 255), col_online=(255, 255, 255),
+                          col_music=(255, 255, 255),
                           col_reset=(255, 255, 255), flag_settings=False,
                           main_lvls_col=(255, 255, 255), user_lvls_col=(255, 255, 255)):
         self.start_screen(width, height)
@@ -55,6 +58,12 @@ class MainMenu:
                 if flag_settings else sound_off
         self.setting_image = pygame.transform.scale(file, (100, 100))
         screen.blit(self.setting_image, (width * 0.89, height // 75))
+
+        self.txt_msc_btn = self.main_font.render(self.music_val, True, col_music)
+        screen.blit(self.txt_msc_btn, (850, 100))
+
+        self.txt_wheel = pygame.font.SysFont('Segoe Print', 20).render('(колёсиком)', True, col_online)
+        screen.blit(self.txt_wheel, (850, 170))
 
         self.txt_online_btn = self.main_font.render('Игра по сети', True, col_online)
         screen.blit(self.txt_online_btn, (width // 75, height * 0.83))
@@ -133,6 +142,8 @@ class MainMenu:
         elif width // 75 <= x <= width // 75 + self.txt_online_btn.get_width() \
                 and height * 0.85 <= y <= height * 0.9:
             self.make_inscriptions(width, height, col_online='yellow')
+        elif 850 <= x <= 1000 and 130 <= y <= 165:
+            self.make_inscriptions(width, height, col_music='yellow')
         elif width // 1.34 <= x <= width // 1.34 + self.txt_reset_stat.get_width() \
                 and height * 0.962 <= y <= height * 0.962 + self.txt_reset_stat.get_height():
             self.make_inscriptions(width, height, col_reset='yellow')
@@ -227,6 +238,18 @@ class MainMenu:
                 self.cnt = 0
                 self.flag_sound = False
 
+    def sound_mixer(self, e):
+        if 850 <= e.pos[0] <= 1000 and 130 <= e.pos[1] <= 165:
+            if e.button == 4 and int(self.music_val.split("%")[0]) < 100:
+                self.music_val = str(int(self.music_val.split("%")[0]) + 1) + "%"
+                pygame.mixer.music.set_volume((self.vol + 1) / 100)
+                self.vol += 1
+            elif e.button == 5 and int(self.music_val.split("%")[0]) > 0:
+                self.music_val = str(int(self.music_val.split("%")[0]) - 1) + "%"
+                pygame.mixer.music.set_volume((self.vol - 1) / 100)
+                self.vol -= 1
+
+
 
 # основной запуск программы
 if __name__ == '__main__':
@@ -247,7 +270,7 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 main.go_next(*event.pos, *size)
                 if main.save_pos_flag_settings:
                     main.make_inscriptions(*size, flag_settings=True)
@@ -257,5 +280,10 @@ if __name__ == '__main__':
                     main.make_inscriptions(*size)
             if event.type == pygame.MOUSEMOTION:
                 main.set_color(*event.pos, *size)
+            if event.type == pygame.MOUSEBUTTONDOWN and (event.button == 4 or event.button == 5):
+                main.sound_mixer(event)
+                main.make_inscriptions(*size)
+                main.set_color(*event.pos, *size)
+
         pygame.display.flip()
     pygame.quit()
