@@ -20,9 +20,9 @@ pygame.mixer.music.set_volume(0.1)
 jump = pygame.mixer.Sound("sounds/jump.ogg")
 jump.set_volume(0.5)
 death = pygame.mixer.Sound("sounds/death.wav")
-death.set_volume(0.5)
+death.set_volume(0.6)
 win_end = pygame.mixer.Sound("sounds/win.wav")
-win_end.set_volume(0.5)
+win_end.set_volume(0.25)
 
 # работа с окном
 pygame.init()
@@ -49,6 +49,7 @@ fake_bars = pygame.sprite.Group()
 fake_platforms = pygame.sprite.Group()
 water_jumping_start = pygame.USEREVENT + 1
 fire_jumping_start = pygame.USEREVENT + 2
+anim = pygame.USEREVENT + 3
 
 
 # загрузка фото
@@ -160,7 +161,6 @@ class Heroes(pygame.sprite.Sprite):
             self.in_portal = True
         else:
             self.in_portal = False
-
         if self.hero == "fire":
             for wt in water:
                 if self.liquid_touch(wt):
@@ -177,8 +177,6 @@ class Heroes(pygame.sprite.Sprite):
             for i, j in block:
                 if (i - 1) * 24 <= self.rect.x - 20 <= (i + 1) * 24 and \
                         j * 24 <= self.rect.y <= (j + 1) * 24:
-                    print((i - 1) * 24, self.rect.x)
-                    print(j * 24, self.rect.y)
                     self.on_button = True
                     ind_bl = buttons_cords.index(block)
                     self.index = (ind_bl, buttons_cords[ind_bl].index((i, j)))
@@ -230,6 +228,7 @@ class Heroes(pygame.sprite.Sprite):
             return True
         else:
             return False
+
 
 # платформа(составляет стены, пол уровня, остальные препятствия)
 class Platform(pygame.sprite.Sprite):
@@ -471,6 +470,7 @@ class Game:
         self.death = False
         self.final_win = False
         self.user_lvl = False
+        self.sound_played = False
         self.barriers_cords = []
         self.buttons_cords = []
         self.barriers = []
@@ -620,6 +620,8 @@ class Game:
         if self.cnt_flag:
             self.flag_sound = True
             pygame.mixer.music.pause()
+            death.stop()
+            win_end.stop()
             sound_flag = True
             creating_levels.sound_flag = True
         else:
@@ -772,6 +774,7 @@ class Game:
 
     # загрузка уровня из файла
     def load_level(self):
+        self.sound_played = False
         screen.fill('black')
         font = pygame.font.SysFont('Segoe Print', 30)
         with open("levels_info.json") as f2:
@@ -855,7 +858,6 @@ class Game:
         font = pygame.font.SysFont('Segoe Print', 30)
         level_text = font.render('Уровень 1', True, (255, 255, 255))
         screen.blit(level_text, (20, 10))
-        anim = pygame.USEREVENT + 4
         pygame.time.set_timer(anim, 150)
         if "main" not in self.name:
             with open("levels_info.json") as f:
@@ -1020,22 +1022,27 @@ class Game:
             pl1.music_flag = self.cnt_flag
             pl2.music_flag = self.cnt_flag
             if self.final_win or self.user_lvl and pl1.in_portal and pl2.in_portal:
-                if not self.cnt_flag:
+                if not self.sound_played:
                     win_end.play()
-                    pygame.mixer.music.pause()
+                    self.sound_played = True
+                pygame.mixer.music.pause()
                 self.create_btns_lose(['Ты потрясающий'])
                 pygame.display.flip()
                 self.final_screen_lose = True
             elif pl1.lose or pl2.lose:
                 if not self.cnt_flag:
-                    death.play()
+                    if not self.sound_played:
+                        death.play()
+                        self.sound_played = True
                     pygame.mixer.music.pause()
                 self.create_btns_lose(['Попробуй снова'])
                 pygame.display.flip()
                 self.final_screen_lose = True
             elif pl1.in_portal and pl2.in_portal:
                 if not self.cnt_flag:
-                    win_end.play()
+                    if not self.sound_played:
+                        win_end.play()
+                        self.sound_played = True
                     pygame.mixer.music.pause()
                 self.create_btns_win(["Mission completed", "respect+"])
                 try:
