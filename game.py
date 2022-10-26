@@ -774,6 +774,7 @@ class Game:
 
     # загрузка уровня из файла
     def load_level(self):
+        s = ""
         self.sound_played = False
         screen.fill('black')
         font = pygame.font.SysFont('Segoe Print', 30)
@@ -783,12 +784,14 @@ class Game:
                 num = name.split('/')[1][:name.split('/')[1].index('.')]
             else:
                 num = name[name.index('_') + 1:name.index('.')]
-            if num == '10':
-                self.final_win = True
+            if num == '10' or num == "9":
+                s = "на уровне есть ПРОЗРАЧНЫЕ БЛОКИ"
+                if num == '10':
+                    self.final_win = True
             if "user" in name:
                 self.user_lvl = True
             self.fon = pygame.transform.scale(pygame.image.load(f'caves/{num}.jpg'), (926, 720))
-            level_text = font.render(f"Уровень {num}", True, (255, 255, 255))
+            level_text = font.render(f"Уровень {num}      {s}", True, (255, 255, 255))
             screen.blit(level_text, (20, 10))
             with open(name) as f:
                 rows = f.readlines()
