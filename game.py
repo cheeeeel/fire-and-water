@@ -924,6 +924,8 @@ class Game:
                                 if not sound_flag:
                                     pygame.mixer.music.unpause()
                                 self.draw_levels()
+                                self.draw_levels()
+                                self.draw_levels()
                             elif 770 <= x <= 920 and 490 <= y <= 640:
                                 self.new_lvl = True
                                 with open("levels_info.json") as f:
