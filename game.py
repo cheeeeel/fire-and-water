@@ -74,9 +74,9 @@ def load_image(s, key=None):
 
 
 PL = load_image("stone.png")
-lava_block = load_image('lava-block.png')
-water_block = load_image('water-block.png')
-poison_block = load_image('poison-block.png')
+lava_block = load_image('lava-block.png', -1)
+water_block = load_image('water-block.png', -1)
+poison_block = load_image('poison-block.png', -1)
 
 
 # меню выбора файла из проводника
@@ -137,7 +137,7 @@ class Heroes(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.mask = pygame.mask.from_surface(self.image)
+        self.mask = pygame.mask.from_surface(self.image, 127)
 
     # гравитация
     def update(self):
@@ -160,15 +160,25 @@ class Heroes(pygame.sprite.Sprite):
             self.in_portal = True
         else:
             self.in_portal = False
-        if self.hero == "fire" and pygame.sprite.spritecollideany(self, water) or \
-                self.hero == "water" and pygame.sprite.spritecollideany(self, lava) or \
-                pygame.sprite.spritecollideany(self, poison):
-            self.lose = True
+
+        if self.hero == "fire":
+            for wt in water:
+                if self.liquid_touch(wt):
+                    self.lose = True
+        if self.hero == "water":
+            for lv in lava:
+                if self.liquid_touch(lv):
+                    self.lose = True
+        for ps in poison:
+            if self.liquid_touch(ps):
+                self.lose = True
 
         for block in buttons_cords:
             for i, j in block:
                 if (i - 1) * 24 <= self.rect.x - 20 <= (i + 1) * 24 and \
                         j * 24 <= self.rect.y <= (j + 1) * 24:
+                    print((i - 1) * 24, self.rect.x)
+                    print(j * 24, self.rect.y)
                     self.on_button = True
                     ind_bl = buttons_cords.index(block)
                     self.index = (ind_bl, buttons_cords[ind_bl].index((i, j)))
@@ -212,6 +222,14 @@ class Heroes(pygame.sprite.Sprite):
             self.jump_flag = False
         self.rect = self.rect.move(0, 5)
 
+    def liquid_touch(self, w):
+        if w.rect.x <= self.rect.x + self.rect.width // 2 + 6 <= w.rect.x + w.rect.width \
+                and w.rect.y - 2 <= self.rect.y + self.rect.height - 2 <= w.rect.y + 2 or \
+                w.rect.x <= self.rect.x + self.rect.width // 2 - 6 <= w.rect.x + w.rect.width \
+                and w.rect.y - 2 <= self.rect.y + self.rect.height - 2 <= w.rect.y + 2:
+            return True
+        else:
+            return False
 
 # платформа(составляет стены, пол уровня, остальные препятствия)
 class Platform(pygame.sprite.Sprite):
@@ -427,11 +445,11 @@ class Liquids(pygame.sprite.Sprite):
             self.image = poison_block
             self.add(poison)
             self.add(poison)
-        self.image = pygame.transform.scale(self.image, (24, 12))
+        self.image = pygame.transform.scale(self.image, (24, 14))
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        #self.mask = pygame.mask.Mask(size=(self.rect.x, 12))
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 # загрузка уровня
