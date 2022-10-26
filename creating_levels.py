@@ -613,30 +613,35 @@ class Level:
 
     # цикл программы
     def mainloop(self, name):
-        size = 1000, 840
-        screen = pygame.display.set_mode(size)
-        name.render(screen)
-        while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    exit()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if name.cr_btn and event.button == 3:
-                        name.flag_end = True
-                    if event.button == 1:
-                        name.get_click(event.pos, True)
-                        if not self.running:
-                            return
-                    elif event.button == 3:
-                        name.get_click(event.pos, False)
-                    else:
-                        name.get_click(event.pos)
-                if event.type == pygame.MOUSEMOTION:
-                    name.set_color(event.pos)
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    self.stop_game()
-                    if not self.running:
-                        break
-            screen.fill((15, 82, 186))
+        try:
+            size = 1000, 840
+            screen = pygame.display.set_mode(size)
             name.render(screen)
-            pygame.display.flip()
+            while self.running:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        exit()
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        if name.cr_btn and event.button == 3:
+                            name.flag_end = True
+                        if event.button == 1:
+                            name.get_click(event.pos, True)
+                            if not self.running:
+                                return
+                        elif event.button == 3:
+                            name.get_click(event.pos, False)
+                        else:
+                            name.get_click(event.pos)
+                    if event.type == pygame.MOUSEMOTION:
+                        name.set_color(event.pos)
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        self.stop_game()
+                        if not self.running:
+                            break
+                screen.fill((15, 82, 186))
+                name.render(screen)
+                pygame.display.flip()
+        except Exception:
+            t = Level(40, 31)
+            t.flag_sound = self.flag_sound
+            self.mainloop(t)

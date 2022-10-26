@@ -856,217 +856,220 @@ class Game:
 
     # основной цикл
     def mainloop(self):
-        self.running = True
-        set_pause = False
-        font = pygame.font.SysFont('Segoe Print', 30)
-        level_text = font.render('Уровень 1', True, (255, 255, 255))
-        screen.blit(level_text, (20, 10))
-        pygame.time.set_timer(anim, 150)
-        if "main" not in self.name:
-            with open("levels_info.json") as f:
-                data = json.load(f)
-                data["current_level"] = self.name
-                with open("levels_info.json", "w") as f2:
-                    json.dump(data, f2)
-        else:
-            self.draw_levels()
-        while self.running:
-            if self.new_lvl:
-                if not self.cnt_flag:
-                    death.stop()
-                    win_end.stop()
-                    pygame.mixer.music.unpause()
-                self.default()
-                self.default_color_w_l()
-                self.load_level()
-                self.new_lvl = False
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
-                if event.type == pygame.MOUSEMOTION:
-                    x, y = event.pos
-                    if not (self.final_screen_win or self.final_screen_lose):
-                        if 930 <= x <= 990 and 10 <= y <= 70:
-                            set_pause = True
-                        else:
-                            set_pause = False
-                    if self.final_screen_win:
-                        self.set_col_win(x, y)
-                    elif self.final_screen_lose:
-                        self.set_col_lose(x, y)
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    x, y = event.pos
-                    if not (self.final_screen_win or self.final_screen_lose):
-                        if 930 <= x <= 990 and 10 <= y <= 70:
-                            self.stop_game()
-                            set_pause = False
-                            if self.running:
-                                screen.fill((0, 0, 0))
-                                screen.blit(level_text, (20, 10))
-                            else:
-                                return
-                    if self.final_screen_win:
-                        if 80 <= x <= 230 and 490 <= y <= 640:
-                            win_end.stop()
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            return
-                        elif 310 <= x <= 460 and 490 <= y <= 640:
-                            win_end.stop()
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            self.final_screen_win = False
-                            self.new_lvl = True
-                        elif 540 <= x <= 690 and 490 <= y <= 640:
-                            win_end.stop()
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            self.draw_levels()
-                        elif 770 <= x <= 920 and 490 <= y <= 640:
-                            self.new_lvl = True
-                            with open("levels_info.json") as f:
-                                data = json.load(f)
-                                text = data["current_level"]
-                                num = int(text[text.index('/') + 1:text.index('.')])
-                                data["current_level"] = f'main_levels/{num + 1}.txt'
-                                with open("levels_info.json", "w") as f2:
-                                    json.dump(data, f2)
-                                pl1.in_portal = False
-                                pl2.in_portal = False
-                    elif self.final_screen_lose:
-                        if 137 <= x <= 287 and 490 <= y <= 640:
-                            death.stop()
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            return
-                        elif 425 <= x <= 575 and 490 <= y <= 640:
-                            death.stop()
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            self.final_screen_lose = False
-                            self.new_lvl = True
-                        elif 712 <= x <= 862 and 490 <= y <= 640:
-                            death.stop()
-                            if not sound_flag:
-                                pygame.mixer.music.unpause()
-                            self.draw_levels()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP and self.jump_test(pl2):
-                        pygame.time.set_timer(water_jumping_start, 650)
-                        if not self.cnt_flag:
-                            jump.play()
-                        pl2.jump_flag = True
-                    if event.key in [pygame.K_w, pygame.K_SPACE] and self.jump_test(pl1):
-                        pygame.time.set_timer(fire_jumping_start, 650)
-                        if not self.cnt_flag:
-                            jump.play()
-                        pl1.jump_flag = True
-                    if not (pl1.lose or pl1.lose) or not (pl1.in_portal and pl2.in_portal):
-                        if event.key == pygame.K_ESCAPE:
-                            self.stop_game()
-                            if self.running:
-                                screen.fill((0, 0, 0))
-                                screen.blit(level_text, (20, 10))
-                            else:
-                                return
-                if event.type == fire_jumping_start:
-                    if not pl1.jump_flag:
-                        pygame.time.set_timer(fire_jumping_start, 0)
-                    else:
-                        pl1.jump_flag = False
-                if event.type == water_jumping_start:
-                    if not pl2.jump_flag:
-                        pygame.time.set_timer(water_jumping_start, 0)
-                    else:
-                        pl2.jump_flag = False
-                if event.type == anim:
-                    pl1.animation()
-                    pl2.animation()
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_d]:
-                pl1.right()
-                box1.right()
-            if keys[pygame.K_a]:
-                pl1.left()
-                box1.left()
-            if keys[pygame.K_RIGHT]:
-                pl2.right()
-                box1.right()
-            if keys[pygame.K_LEFT]:
-                pl2.left()
-                box1.left()
-            if pl1.jump_flag and not pl1.under_bar:
-                pl1.jump()
-            if pl2.jump_flag and not pl2.under_bar:
-                pl2.jump()
-            if pl1.on_button or pl2.on_button or box1.on_button:
-                pl1.under_bar, pl2.under_bar = False, False
-                ind = []
-                for i in [pl1, pl2, box1]:
-                    if i.index[0] != -100 and i.index not in ind:
-                        ind.append(i.index)
-                if buttons:
-                    for x, y in ind:
-                        buttons[x][y].down()
-                        block = barriers[x]
-                        for bar in block:
-                            bar.up()
-                    for x in range(len(buttons)):
-                        for y in range(len(buttons[x])):
-                            if (x, y) not in ind:
-                                buttons[x][y].up()
-                    for x in range(len(barriers)):
-                        if x not in [j[0] for j in ind]:
-                            for bar in barriers[x]:
-                                bar.down()
+        try:
+            self.running = True
+            set_pause = False
+            font = pygame.font.SysFont('Segoe Print', 30)
+            level_text = font.render('Уровень 1', True, (255, 255, 255))
+            screen.blit(level_text, (20, 10))
+            pygame.time.set_timer(anim, 150)
+            if "main" not in self.name:
+                with open("levels_info.json") as f:
+                    data = json.load(f)
+                    data["current_level"] = self.name
+                    with open("levels_info.json", "w") as f2:
+                        json.dump(data, f2)
             else:
-                self.bar_move()
-            pl1.music_flag = self.cnt_flag
-            pl2.music_flag = self.cnt_flag
-            if (self.final_win or self.user_lvl) and pl1.in_portal and pl2.in_portal:
-                if not self.sound_played:
-                    win_end.play()
-                    self.sound_played = True
-                pygame.mixer.music.pause()
-                self.create_btns_lose(['Ты потрясающий'])
-                pygame.display.flip()
-                self.final_screen_lose = True
-            elif pl1.lose or pl2.lose:
-                if not self.cnt_flag:
-                    if not self.sound_played:
-                        death.play()
-                        self.sound_played = True
-                    pygame.mixer.music.pause()
-                self.create_btns_lose(['Попробуй снова'])
-                pygame.display.flip()
-                self.final_screen_lose = True
-            elif pl1.in_portal and pl2.in_portal:
-                if not self.cnt_flag:
+                self.draw_levels()
+            while self.running:
+                if self.new_lvl:
+                    if not self.cnt_flag:
+                        death.stop()
+                        win_end.stop()
+                        pygame.mixer.music.unpause()
+                    self.default()
+                    self.default_color_w_l()
+                    self.load_level()
+                    self.new_lvl = False
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        exit()
+                    if event.type == pygame.MOUSEMOTION:
+                        x, y = event.pos
+                        if not (self.final_screen_win or self.final_screen_lose):
+                            if 930 <= x <= 990 and 10 <= y <= 70:
+                                set_pause = True
+                            else:
+                                set_pause = False
+                        if self.final_screen_win:
+                            self.set_col_win(x, y)
+                        elif self.final_screen_lose:
+                            self.set_col_lose(x, y)
+                    if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                        x, y = event.pos
+                        if not (self.final_screen_win or self.final_screen_lose):
+                            if 930 <= x <= 990 and 10 <= y <= 70:
+                                self.stop_game()
+                                set_pause = False
+                                if self.running:
+                                    screen.fill((0, 0, 0))
+                                    screen.blit(level_text, (20, 10))
+                                else:
+                                    return
+                        if self.final_screen_win:
+                            if 80 <= x <= 230 and 490 <= y <= 640:
+                                win_end.stop()
+                                if not sound_flag:
+                                    pygame.mixer.music.unpause()
+                                return
+                            elif 310 <= x <= 460 and 490 <= y <= 640:
+                                win_end.stop()
+                                if not sound_flag:
+                                    pygame.mixer.music.unpause()
+                                self.final_screen_win = False
+                                self.new_lvl = True
+                            elif 540 <= x <= 690 and 490 <= y <= 640:
+                                win_end.stop()
+                                if not sound_flag:
+                                    pygame.mixer.music.unpause()
+                                self.draw_levels()
+                            elif 770 <= x <= 920 and 490 <= y <= 640:
+                                self.new_lvl = True
+                                with open("levels_info.json") as f:
+                                    data = json.load(f)
+                                    text = data["current_level"]
+                                    num = int(text[text.index('/') + 1:text.index('.')])
+                                    data["current_level"] = f'main_levels/{num + 1}.txt'
+                                    with open("levels_info.json", "w") as f2:
+                                        json.dump(data, f2)
+                                    pl1.in_portal = False
+                                    pl2.in_portal = False
+                        elif self.final_screen_lose:
+                            if 137 <= x <= 287 and 490 <= y <= 640:
+                                death.stop()
+                                if not sound_flag:
+                                    pygame.mixer.music.unpause()
+                                return
+                            elif 425 <= x <= 575 and 490 <= y <= 640:
+                                death.stop()
+                                if not sound_flag:
+                                    pygame.mixer.music.unpause()
+                                self.final_screen_lose = False
+                                self.new_lvl = True
+                            elif 712 <= x <= 862 and 490 <= y <= 640:
+                                death.stop()
+                                if not sound_flag:
+                                    pygame.mixer.music.unpause()
+                                self.draw_levels()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_UP and self.jump_test(pl2):
+                            pygame.time.set_timer(water_jumping_start, 650)
+                            if not self.cnt_flag:
+                                jump.play()
+                            pl2.jump_flag = True
+                        if event.key in [pygame.K_w, pygame.K_SPACE] and self.jump_test(pl1):
+                            pygame.time.set_timer(fire_jumping_start, 650)
+                            if not self.cnt_flag:
+                                jump.play()
+                            pl1.jump_flag = True
+                        if not (pl1.lose or pl1.lose) or not (pl1.in_portal and pl2.in_portal):
+                            if event.key == pygame.K_ESCAPE:
+                                self.stop_game()
+                                if self.running:
+                                    screen.fill((0, 0, 0))
+                                    screen.blit(level_text, (20, 10))
+                                else:
+                                    return
+                    if event.type == fire_jumping_start:
+                        if not pl1.jump_flag:
+                            pygame.time.set_timer(fire_jumping_start, 0)
+                        else:
+                            pl1.jump_flag = False
+                    if event.type == water_jumping_start:
+                        if not pl2.jump_flag:
+                            pygame.time.set_timer(water_jumping_start, 0)
+                        else:
+                            pl2.jump_flag = False
+                    if event.type == anim:
+                        pl1.animation()
+                        pl2.animation()
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_d]:
+                    pl1.right()
+                    box1.right()
+                if keys[pygame.K_a]:
+                    pl1.left()
+                    box1.left()
+                if keys[pygame.K_RIGHT]:
+                    pl2.right()
+                    box1.right()
+                if keys[pygame.K_LEFT]:
+                    pl2.left()
+                    box1.left()
+                if pl1.jump_flag and not pl1.under_bar:
+                    pl1.jump()
+                if pl2.jump_flag and not pl2.under_bar:
+                    pl2.jump()
+                if pl1.on_button or pl2.on_button or box1.on_button:
+                    pl1.under_bar, pl2.under_bar = False, False
+                    ind = []
+                    for i in [pl1, pl2, box1]:
+                        if i.index[0] != -100 and i.index not in ind:
+                            ind.append(i.index)
+                    if buttons:
+                        for x, y in ind:
+                            buttons[x][y].down()
+                            block = barriers[x]
+                            for bar in block:
+                                bar.up()
+                        for x in range(len(buttons)):
+                            for y in range(len(buttons[x])):
+                                if (x, y) not in ind:
+                                    buttons[x][y].up()
+                        for x in range(len(barriers)):
+                            if x not in [j[0] for j in ind]:
+                                for bar in barriers[x]:
+                                    bar.down()
+                else:
+                    self.bar_move()
+                pl1.music_flag = self.cnt_flag
+                pl2.music_flag = self.cnt_flag
+                if (self.final_win or self.user_lvl) and pl1.in_portal and pl2.in_portal:
                     if not self.sound_played:
                         win_end.play()
                         self.sound_played = True
                     pygame.mixer.music.pause()
-                self.create_btns_win(["Mission completed", "respect+"])
-                try:
-                    with open("levels_info.json") as f1:
-                        data = json.load(f1)
-                        data[f"level_{int(data['current_level'].split('/')[1][0]) + 1}"] = "opened"
-                        with open("levels_info.json", "w") as f2:
-                            json.dump(data, f2)
-                except ValueError:
-                    pass
-                pygame.display.flip()
-                self.final_screen_win = True
-            else:
-                screen.blit(self.fon, (44, 104))
-                all_sprites.update()
-                all_sprites.draw(screen)
-                setting_image = pygame.transform.scale(self.pause
-                                                       if not set_pause else self.pause_mouse, (60, 60))
-                screen.blit(setting_image, (920, 10))
-                pygame.display.flip()
-                clock.tick(fps)
+                    self.create_btns_lose(['Ты потрясающий'])
+                    pygame.display.flip()
+                    self.final_screen_lose = True
+                elif pl1.lose or pl2.lose:
+                    if not self.cnt_flag:
+                        if not self.sound_played:
+                            death.play()
+                            self.sound_played = True
+                        pygame.mixer.music.pause()
+                    self.create_btns_lose(['Попробуй снова'])
+                    pygame.display.flip()
+                    self.final_screen_lose = True
+                elif pl1.in_portal and pl2.in_portal:
+                    if not self.cnt_flag:
+                        if not self.sound_played:
+                            win_end.play()
+                            self.sound_played = True
+                        pygame.mixer.music.pause()
+                    self.create_btns_win(["Mission completed", "respect+"])
+                    try:
+                        with open("levels_info.json") as f1:
+                            data = json.load(f1)
+                            data[f"level_{int(data['current_level'].split('/')[1][0]) + 1}"] = "opened"
+                            with open("levels_info.json", "w") as f2:
+                                json.dump(data, f2)
+                    except ValueError:
+                        pass
+                    pygame.display.flip()
+                    self.final_screen_win = True
+                else:
+                    screen.blit(self.fon, (44, 104))
+                    all_sprites.update()
+                    all_sprites.draw(screen)
+                    setting_image = pygame.transform.scale(self.pause
+                                                           if not set_pause else self.pause_mouse, (60, 60))
+                    screen.blit(setting_image, (920, 10))
+                    pygame.display.flip()
+                    clock.tick(fps)
+        except Exception:
+            self.mainloop()
 
     def jump_test(self, hero):
         if pygame.sprite.spritecollideany(hero, platforms) or \
