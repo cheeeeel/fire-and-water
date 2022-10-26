@@ -1021,7 +1021,7 @@ class Game:
                 self.bar_move()
             pl1.music_flag = self.cnt_flag
             pl2.music_flag = self.cnt_flag
-            if self.final_win or self.user_lvl and pl1.in_portal and pl2.in_portal:
+            if (self.final_win or self.user_lvl) and pl1.in_portal and pl2.in_portal:
                 if not self.sound_played:
                     win_end.play()
                     self.sound_played = True
