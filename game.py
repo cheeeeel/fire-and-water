@@ -862,7 +862,7 @@ class Game:
             font = pygame.font.SysFont('Segoe Print', 30)
             level_text = font.render('Уровень 1', True, (255, 255, 255))
             screen.blit(level_text, (20, 10))
-            pygame.time.set_timer(anim, 150)
+            pygame.time.set_timer(anim, 201)
             if "main" not in self.name:
                 with open("levels_info.json") as f:
                     data = json.load(f)

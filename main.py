@@ -250,7 +250,6 @@ class MainMenu:
                 self.vol -= 1
 
 
-
 # основной запуск программы
 if __name__ == '__main__':
     save_pos_flag = False
@@ -284,6 +283,5 @@ if __name__ == '__main__':
                 main.sound_mixer(event)
                 main.make_inscriptions(*size)
                 main.set_color(*event.pos, *size)
-
         pygame.display.flip()
     pygame.quit()
